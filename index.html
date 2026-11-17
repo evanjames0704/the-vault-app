@@ -1723,7 +1723,8 @@ async function search(){
   if(!card.querySelector('img')){const fallback=document.createElement('div');fallback.className='vault-photo-missing';fallback.textContent='Photo not available';card.appendChild(fallback)}
   const title=document.createElement('strong');title.textContent=x.name;card.appendChild(title);
   const desc=document.createElement('div');desc.className='v11sub';desc.textContent=[x.category,x.brand,x.variant,x.source].filter(Boolean).join(' · ');card.appendChild(desc);
-  if(x.retailPrice!==null&&x.retailPrice!==undefined&&Number.isFinite(x.retailPrice)){const price=document.createElement('div');price.className='v11sub';price.textContent='Listed retail: btn.onclick=()=>choose(x);card.appendChild(btn);out.appendChild(card);
+  if(x.retailPrice!==null&&x.retailPrice!==undefined&&Number.isFinite(x.retailPrice)){const price=document.createElement('div');price.className='v11sub';price.textContent='Listed retail: $'+x.retailPrice.toFixed(2)+' · Not a resale valuation';card.appendChild(price)}
+  const btn=document.createElement('button');btn.textContent='Add this collectible';btn.onclick=()=>choose(x);card.appendChild(btn);out.appendChild(card);
  });shown=Math.min(unique.length,shown+batch);loadMore.hidden=shown>=unique.length;loadMore.textContent='Show more ('+(unique.length-shown)+' remaining)';};
  const loadMore=document.createElement('button');loadMore.type='button';loadMore.className='vault-load-more';loadMore.onclick=renderBatch;out.after(loadMore);document.querySelectorAll('.vault-load-more').forEach(b=>{if(b!==loadMore)b.remove()});renderBatch();
  
