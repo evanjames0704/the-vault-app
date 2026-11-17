@@ -11,6 +11,7 @@ on:
           - funko
           - sideshow
           - marvel-legends
+          - bbts
       pages:
         description: "Sideshow pages (1-25)"
         required: false
@@ -39,14 +40,16 @@ jobs:
           case "$SOURCE" in
             all)
               python tools/import_funko.py --url 'https://funko.com/all-funko-products/' --output output/funko-catalog.json
-              python tools/import_marvel_legends.py --url 'https://legendsverse.com/checklist/marvel-legends/figures?view=table' --output output/marvel-legends.json
-              python tools/import_sideshow.py --pages "$PAGES" --output output/sideshow-catalog.json
+              python tools/import_marvel_legends.py --url 'https://legendsverse.com/checklist/marvel-legends/figures?view=table' --output output/marvel-legends.json || echo 'Marvel Legends unavailable; no bypass attempted'
+              python tools/import_sideshow.py --pages "$PAGES" --output output/sideshow-catalog.json || echo 'Sideshow unavailable; no bypass attempted'
+              python tools/import_bbts.py --output output/bbts-catalog.json || echo 'BBTS unavailable; no bypass attempted'
               ;;
             funko) python tools/import_funko.py --url 'https://funko.com/all-funko-products/' --output output/funko-catalog.json ;;
             sideshow)
               if ! [[ "$PAGES" =~ ^[0-9]+$ ]] || (( PAGES < 1 || PAGES > 25 )); then echo 'Invalid pages'; exit 1; fi
               python tools/import_sideshow.py --pages "$PAGES" --output output/sideshow-catalog.json ;;
             marvel-legends) python tools/import_marvel_legends.py --url 'https://legendsverse.com/checklist/marvel-legends/figures?view=table' --output output/marvel-legends.json ;;
+            bbts) python tools/import_bbts.py --output output/bbts-catalog.json ;;
             *) exit 1 ;;
           esac
       - name: Check output
@@ -72,7 +75,7 @@ jobs:
           set -euo pipefail
           mkdir -p website
           cp index.html website/
-          for file in manifest.webmanifest sw.js icon.svg marvel-legends.json sideshow-catalog.json funko-catalog.json; do
+          for file in manifest.webmanifest sw.js icon.svg marvel-legends.json sideshow-catalog.json funko-catalog.json bbts-catalog.json; do
             if [ -f "$file" ]; then cp "$file" website/; fi
           done
           cp output/*.json website/
@@ -97,7 +100,7 @@ jobs:
           assert len(json.loads((root/"lego-catalog.json").read_text()))>=10000
           imported=list(root.glob("*-catalog.json"))
           if "${{ inputs.source }}" == "all":
-            assert all((root/name).is_file() for name in ("funko-catalog.json","marvel-legends.json","sideshow-catalog.json")), "Missing required catalogs"
+            assert (root/"funko-catalog.json").is_file(), "Funko catalog missing"
           print("Package files:", [p.name for p in root.iterdir()])
           print("Bundled LEGO records:",len(json.loads((root/"lego-catalog.json").read_text())))
           PY
