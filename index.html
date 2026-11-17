@@ -1694,6 +1694,44 @@ async function search(){
    return found;
   }catch(e){notices.push('BBTS catalog not loaded');return []}
  })());
+ // Hasbro manufacturer catalog.
+ requests.push((async()=>{
+  try{
+   if(!window.vaultManufacturerCatalogs)window.vaultManufacturerCatalogs={};
+   if(!window.vaultManufacturerCatalogs['hasbro']){
+    const response=await fetch('./hasbro-catalog.json',{cache:'no-cache',signal:AbortSignal.timeout(16000)});
+    if(!response.ok)throw Error('Hasbro catalog not published');
+    const data=await response.json();
+    if(!data||data.schema!=='vault-hasbro-v1'||!Array.isArray(data.items))throw Error('Invalid Hasbro catalog');
+    window.vaultManufacturerCatalogs['hasbro']=data.items;
+   }
+   const found=[];
+   for(const item of window.vaultManufacturerCatalogs['hasbro']){
+    const x={name:String(item.name||''),category:String(item.category||'Action figures'),franchise:String(item.franchise||''),brand:String(item.brand||'Hasbro'),identifier:String(item.identifier||''),variant:String(item.variant||''),image:String(item.image||''),retailPrice:(item.retailPrice==null?null:Number(item.retailPrice)),source:'Hasbro catalog'};
+    if(matches(x)){found.push(x);if(found.length>=500)break}
+   }
+   return found;
+  }catch(e){notices.push('Hasbro catalog not loaded');return []}
+ })());
+ // McFarlane Toys manufacturer catalog.
+ requests.push((async()=>{
+  try{
+   if(!window.vaultManufacturerCatalogs)window.vaultManufacturerCatalogs={};
+   if(!window.vaultManufacturerCatalogs['mcfarlane']){
+    const response=await fetch('./mcfarlane-catalog.json',{cache:'no-cache',signal:AbortSignal.timeout(16000)});
+    if(!response.ok)throw Error('McFarlane Toys catalog not published');
+    const data=await response.json();
+    if(!data||data.schema!=='vault-mcfarlane-v1'||!Array.isArray(data.items))throw Error('Invalid McFarlane Toys catalog');
+    window.vaultManufacturerCatalogs['mcfarlane']=data.items;
+   }
+   const found=[];
+   for(const item of window.vaultManufacturerCatalogs['mcfarlane']){
+    const x={name:String(item.name||''),category:String(item.category||'Action figures'),franchise:String(item.franchise||''),brand:String(item.brand||'McFarlane Toys'),identifier:String(item.identifier||''),variant:String(item.variant||''),image:String(item.image||''),retailPrice:(item.retailPrice==null?null:Number(item.retailPrice)),source:'McFarlane Toys catalog'};
+    if(matches(x)){found.push(x);if(found.length>=500)break}
+   }
+   return found;
+  }catch(e){notices.push('McFarlane Toys catalog not loaded');return []}
+ })());
  // Official Funko catalog takes precedence over the historical community fallback.
  requests.push((async()=>{
   try{
