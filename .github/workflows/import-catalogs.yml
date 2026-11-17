@@ -26,7 +26,7 @@ jobs:
         with:
           python-version: '3.12'
       - name: Install dependencies
-        run: python -m pip install --disable-pip-version-check requests beautifulsoup4
+        run: python -m pip install --disable-pip-version-check requests beautifulsoup4 Pillow
       - name: Import selected catalog
         env:
           SOURCE: ${{ inputs.source }}
@@ -53,16 +53,34 @@ jobs:
           assert data['count'] == len(data['items']) and data['count'] > 0
           print('Catalog records:',data['count'])
           PY
-      - name: Prepare deployable website bundle
+      - name: Restore LEGO catalog and iPhone icons
+        shell: bash
+        run: |
+          set -euo pipefail
+          python tools/import_lego.py --output website/lego-catalog.json
+          python tools/build_app_icons.py
+      - name: Prepare website preview bundle
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p website
           cp index.html website/
-          for file in manifest.webmanifest service-worker.js sw.js icon-192.png icon-512.png lego-catalog.json marvel-legends.json sideshow-catalog.json funko-catalog.json; do
+          for file in manifest.webmanifest sw.js icon.svg marvel-legends.json sideshow-catalog.json funko-catalog.json; do
             if [ -f "$file" ]; then cp "$file" website/; fi
           done
           cp output/*.json website/
+          python - <<'PY'
+          from pathlib import Path
+          import json
+          root=Path("website")
+          required=["index.html","manifest.webmanifest","sw.js","icon.svg","icon-192.png","icon-512.png","apple-touch-icon.png","lego-catalog.json"]
+          missing=[x for x in required if not (root/x).is_file()]
+          assert not missing, f"Incomplete website bundle; missing {missing}"
+          assert len(json.loads((root/"lego-catalog.json").read_text()))>=10000
+          imported=list(root.glob("*-catalog.json"))
+          print("Package files:", [p.name for p in root.iterdir()])
+          print("Bundled LEGO records:",len(json.loads((root/"lego-catalog.json").read_text())))
+          PY
           cd website
           zip -q -r ../the-vault-website-preview.zip .
       - uses: actions/upload-artifact@v4
