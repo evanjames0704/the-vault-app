@@ -1750,6 +1750,24 @@ async function search(){
    return found;
   }catch(e){notices.push('Mephitsu catalog not loaded');return []}
  })());
+ // Pokémon TCG: cards from every imported set share the same Add Item search.
+ requests.push((async()=>{
+  try{
+   if(!window.vaultPokemonCatalog){
+    const response=await fetch('./pokemon-catalog.json',{cache:'force-cache'});
+    if(!response.ok)throw Error('Pokémon catalog not published');
+    const data=await response.json();
+    if(!data||data.schema!=='vault-pokemon-tcg-v1'||!Array.isArray(data.items))throw Error('Invalid Pokémon catalog');
+    window.vaultPokemonCatalog=data.items;
+   }
+   const found=[];
+   for(const item of window.vaultPokemonCatalog){
+    const x={name:String(item.name||''),category:'Trading Cards',franchise:'Pokémon',brand:'Pokémon',identifier:String(item.id||''),variant:String(item.variant||''),image:String(item.image||''),retailPrice:null,source:'Pokémon TCG data',series:String(item.series||''),number:String(item.number||'')};
+    if(matches(x)){found.push(x);if(found.length>=2000)break}
+   }
+   return found;
+  }catch(e){notices.push('Pokémon catalog not loaded');return []}
+ })());
  // Official Funko catalog takes precedence over the historical community fallback.
  requests.push((async()=>{
   try{
