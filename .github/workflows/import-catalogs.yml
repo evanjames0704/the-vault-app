@@ -5,12 +5,14 @@ on:
     paths:
       - 'index.html'
       - 'tools/**'
+      - 'functions/**'
       - '.github/workflows/import-catalogs.yml'
   pull_request:
     branches: [main]
     paths:
       - 'index.html'
       - 'tools/**'
+      - 'functions/**'
       - '.github/workflows/import-catalogs.yml'
   workflow_dispatch:
     inputs:
@@ -99,6 +101,8 @@ jobs:
           set -euo pipefail
           mkdir -p website
           cp index.html website/
+          node tools/build_pages_worker.mjs website
+          node --input-type=module --check < website/_worker.js
           for file in manifest.webmanifest sw.js icon.svg marvel-legends.json sideshow-catalog.json funko-catalog.json bbts-catalog.json hasbro-catalog.json mcfarlane-catalog.json mephitsu-catalog.json pokemon-catalog.json; do
             if [ -f "$file" ]; then cp "$file" website/; fi
           done
@@ -138,7 +142,7 @@ jobs:
           from pathlib import Path
           import json
           root=Path("website")
-          required=["index.html","manifest.webmanifest","sw.js","icon.svg","icon-192.png","icon-512.png","apple-touch-icon.png","lego-catalog.json"]
+          required=["index.html","manifest.webmanifest","sw.js","icon.svg","icon-192.png","icon-512.png","apple-touch-icon.png","lego-catalog.json","_worker.js","_routes.json"]
           missing=[x for x in required if not (root/x).is_file()]
           assert not missing, f"Incomplete website bundle; missing {missing}"
           assert len(json.loads((root/"lego-catalog.json").read_text()))>=10000
