@@ -1626,7 +1626,7 @@ const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 async function choose(x){
  window.vaultOpenNewCollectible();
  const selectedCategory=[...($('category')?.options||[])].find(option=>option.value.toLowerCase()===x.category.toLowerCase())?.value;
- const values={name:x.name,category:selectedCategory||'Action figures',franchise:x.franchise||'',brand:x.brand||'',identifier:x.identifier||'',variant:x.variant||''};
+ const values={name:x.name,category:selectedCategory||(x.source==='eBay listing'?'':'Action figures'),franchise:x.franchise||'',brand:x.brand||'',identifier:x.identifier||'',variant:x.variant||''};
  for(const [id,val] of Object.entries(values)){const el=$(id);if(el){el.value=val;el.dispatchEvent(new Event('change',{bubbles:true}))}}
  // Preserve the exact selected catalog artwork URL for the saved record.
  // Browser image display does not require a cross-origin fetch permission.
@@ -1853,7 +1853,7 @@ async function search(){
   if(!card.querySelector('img')){const fallback=document.createElement('div');fallback.className='vault-photo-missing';fallback.textContent='Photo not available';card.appendChild(fallback)}
   const title=document.createElement('strong');title.textContent=x.name;card.appendChild(title);
   const desc=document.createElement('div');desc.className='v11sub';desc.textContent=[x.category,x.brand,x.series,x.number?'#'+x.number:'',x.variant,x.source].filter(Boolean).join(' · ');card.appendChild(desc);
-  const price=document.createElement('div');price.className='v11sub';price.textContent=Number.isFinite(x.retailPrice)&&x.retailPrice>0?'Listed retail: $'+x.retailPrice.toFixed(2):'Retail price unavailable';card.appendChild(price);
+  const price=document.createElement('div');price.className='v11sub';price.textContent=Number.isFinite(x.retailPrice)&&x.retailPrice>0?'Listed retail: $'+x.retailPrice.toFixed(2):Number.isFinite(x.askingPrice)&&x.askingPrice>0?'eBay asking price: $'+x.askingPrice.toFixed(2):'Price unavailable';card.appendChild(price);
   const btn=document.createElement('button');btn.textContent='Add this collectible';btn.onclick=()=>choose(x);card.appendChild(btn);out.appendChild(card);
  });shown=Math.min(visible.length,shown+batch);loadMore.hidden=shown>=visible.length;loadMore.textContent='Show more ('+(visible.length-shown)+' remaining)';};
  const loadMore=document.createElement('button');loadMore.type='button';loadMore.className='vault-load-more';loadMore.onclick=renderBatch;out.after(loadMore);
@@ -1865,10 +1865,10 @@ async function search(){
   shown=0;out.replaceChildren();
   const message=note=>{ $('v11state').textContent=note+(notices.length?' · '+notices.join(' · '):''); };
   if (!visible.length) {
-   message('Checking the eBay catalog…');
+   message('Checking eBay listings…');
    if (!fallbackSearches.has(category)) {
-    const params=new URLSearchParams({mode:'catalog',q:[q,category==='All'?'':category].filter(Boolean).join(' ').slice(0,100)});
-    fallbackSearches.set(category,fetch('/api/ebay/search?'+params,{signal:AbortSignal.timeout(8000)})
+    const params=new URLSearchParams({mode:'lookup',name:q.slice(0,100),edition:category==='All'?'':category});
+    fallbackSearches.set(category,fetch('/api/ebay/estimate?'+params,{signal:AbortSignal.timeout(8000)})
       .then(async response=>{
        if (!response.ok || !response.headers.get('content-type')?.includes('application/json')) return null;
        const data=await response.json();
@@ -1878,11 +1878,11 @@ async function search(){
    const matches=await fallbackSearches.get(category);
    if (token!==seq || run!==filterRun) return;
    if (!matches) {
-    message('No local matches. The eBay catalog is unavailable. You can add the item manually.');
+    message('No local matches. eBay listings are unavailable. You can add the item manually.');
     renderBatch();return;
    }
-   visible=matches.filter(x=>typeof x.title==='string'&&/^\d{1,20}$/.test(x.epid))
-    .map(x=>({name:x.title,category:category==='All'?'Collectibles':category,identifier:'ePID '+x.epid,source:'eBay catalog'}));
+   visible=matches.filter(x=>typeof x.title==='string'&&/^\d{1,20}$/.test(x.id))
+    .map(x=>({name:x.title,category:category==='All'?'Collectibles':category,askingPrice:x.askingPrice,source:'eBay listing'}));
   }
   message(visible.length?visible.length+' matching collectibles':'No matches. You can add the item manually.');
   renderBatch();

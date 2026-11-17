@@ -65,20 +65,41 @@ async function searchPage(query, sold) {
   return rows.slice(0,80);
 }
 
+export function listingResults(rows, terms) {
+  const results = new Map();
+  for (const row of rows) {
+    const title = row.title.trim();
+    const words = new Set(normalize(title));
+    if (!row.id || !title || !terms.every(term => words.has(term))) continue;
+    const match = /^\$([\d,]+\.\d{2})$/.exec(row.price.trim());
+    const price = match ? Number(match[1].replaceAll(',', '')) : null;
+    results.set(row.id, {id: row.id, title, askingPrice: price > 0 && price <= 100000 ? price : null});
+  }
+  return [...results.values()].slice(0, 20);
+}
+
 export async function onRequestGet({request,env,waitUntil}) {
   const url = new URL(request.url);
   const name = (url.searchParams.get('name') || '').trim();
   const edition = (url.searchParams.get('edition') || '').trim();
   const query = [name,edition].filter(Boolean).join(' ');
   const terms = [...new Set(normalize(query))];
-  if (query.length > 140 || !name || terms.length < 2 || terms.length > 14) return json({quote:null});
+  const lookup = url.searchParams.get('mode') === 'lookup';
+  if (lookup && (query.length > 140 || !terms.length || terms.length > 14)) return json({results:[]});
+  if (!lookup && (query.length > 140 || !name || terms.length < 2 || terms.length > 14)) return json({quote:null});
   const key = new URL(url.origin+'/api/ebay/estimate');
   key.searchParams.set('q',terms.join(' '));
+  if (lookup) key.searchParams.set('mode','lookup');
   key.searchParams.set('sold',env.EBAY_WEBSITE_SOLD_ENABLED === 'true' ? '1' : '0');
   const cache = globalThis.caches?.default;
   const hit = await cache?.match(key.href).catch(()=>null);
   if (hit) return hit;
   try {
+    if (lookup) {
+      const result = json({results:listingResults(await searchPage(query,false),terms)},200,DAY);
+      if (cache) waitUntil(cache.put(key.href,result.clone()).catch(()=>{}));
+      return result;
+    }
     let quote;
     if (env.EBAY_WEBSITE_SOLD_ENABLED === 'true') {
       quote = estimateRows(await searchPage(query,true),terms,true);
@@ -88,6 +109,6 @@ export async function onRequestGet({request,env,waitUntil}) {
     if (cache) waitUntil(cache.put(key.href,result.clone()).catch(()=>{}));
     return result;
   } catch {
-    return json({error:'eBay pricing is temporarily unavailable.'},503);
+    return json({error:lookup?'eBay website lookup is temporarily unavailable.':'eBay pricing is temporarily unavailable.'},503);
   }
 }
