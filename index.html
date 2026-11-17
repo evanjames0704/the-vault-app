@@ -1676,6 +1676,24 @@ async function search(){
    return found;
   }catch(e){notices.push('Sideshow catalog not loaded');return []}
  })());
+ // BigBadToyStore approved collectible catalog.
+ requests.push((async()=>{
+  try{
+   if(!window.vaultBBTSCatalog){
+    const response=await fetch('./bbts-catalog.json',{cache:'no-cache',signal:AbortSignal.timeout(16000)});
+    if(!response.ok)throw Error('BBTS catalog not published');
+    const data=await response.json();
+    if(!data||data.schema!=='vault-bbts-v1'||!Array.isArray(data.items))throw Error('Invalid BBTS catalog');
+    window.vaultBBTSCatalog=data.items;
+   }
+   const found=[];
+   for(const item of window.vaultBBTSCatalog){
+    const x={name:String(item.name||''),category:String(item.category||'Action figures'),franchise:String(item.franchise||''),brand:String(item.brand||'BigBadToyStore'),identifier:String(item.identifier||''),variant:String(item.variant||''),image:String(item.image||''),retailPrice:(item.retailPrice===null||item.retailPrice===undefined?null:Number(item.retailPrice)),source:'BigBadToyStore catalog'};
+    if(matches(x)){found.push(x);if(found.length>=500)break}
+   }
+   return found;
+  }catch(e){notices.push('BBTS catalog not loaded');return []}
+ })());
  // Official Funko catalog takes precedence over the historical community fallback.
  requests.push((async()=>{
   try{
@@ -1715,7 +1733,7 @@ async function search(){
  })());
  const remote=await Promise.all(requests);if(token!==seq)return;remote.forEach(a=>results.push(...a));
  const unique=[...new Map(results.filter(x=>x.name).map(x=>[[x.category,x.name,x.identifier,x.variant].join('|').toLowerCase(),x])).values()];
- $('v11state').textContent=unique.length+' matching collectibles (load more to browse all). '+(notices.length?notices.join(' · ')+'. ':'')+'Official Funko, Sideshow and Marvel Legends records appear only after their catalogs are published. Manufacturer retail prices are not resale market values.';
+ $('v11state').textContent=unique.length+' matching collectibles (load more to browse all). '+(notices.length?notices.join(' · ')+'. ':'')+'Funko, Sideshow, Marvel Legends and BBTS records appear only after their catalogs are published. Manufacturer retail prices are not resale market values.';
  const out=$('v11results');out.replaceChildren();
  const batch=60;let shown=0;const renderBatch=()=>{unique.slice(shown,shown+batch).forEach(x=>{
   const card=document.createElement('div');card.className='v11item';
