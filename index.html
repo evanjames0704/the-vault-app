@@ -1641,6 +1641,7 @@ async function choose(x){
 let seq=0;
 async function search(){
  const q=$('v11q').value.trim(),token=++seq;
+ panel.dispatchEvent(new Event('vault:catalog-search'));
  $('v11results').replaceChildren();
  document.querySelector('.vault-load-more')?.remove();
  if(q.length<2){$('v11state').textContent='Enter at least two characters.';return}
@@ -1705,6 +1706,24 @@ async function search(){
    return found;
   }catch(e){notices.push('BBTS catalog not loaded');return []}
  })());
+ // Manufacturer-filtered Hot Toys listings from BigBadToyStore.
+ requests.push((async()=>{
+  try{
+   if(!window.vaultHotToysCatalog){
+    const response=await fetch('./hot-toys-catalog.json',{cache:'no-cache',signal:AbortSignal.timeout(16000)});
+    if(!response.ok)throw Error('Hot Toys catalog not published');
+    const data=await response.json();
+    if(!data||data.schema!=='vault-bbts-v1'||!Array.isArray(data.items))throw Error('Invalid Hot Toys catalog');
+    window.vaultHotToysCatalog=data.items;
+   }
+   const found=[];
+   for(const item of window.vaultHotToysCatalog){
+    const x={name:String(item.name||''),category:String(item.category||'Hot Toys'),franchise:String(item.franchise||''),brand:String(item.brand||'Hot Toys'),identifier:String(item.identifier||''),variant:String(item.variant||''),image:String(item.image||''),retailPrice:(item.retailPrice===null||item.retailPrice===undefined?null:Number(item.retailPrice)),source:'BigBadToyStore Hot Toys catalog'};
+    if(matches(x)){found.push(x)}
+   }
+   return found;
+  }catch(e){notices.push('Hot Toys catalog not loaded');return []}
+ })());
  // Hasbro manufacturer catalog.
  requests.push((async()=>{
   try{
@@ -1765,7 +1784,7 @@ async function search(){
  requests.push((async()=>{
   try{
    if(!window.vaultPokemonCatalog){
-    const response=await fetch('./pokemon-catalog.json',{cache:'force-cache'});
+    const response=await fetch('./pokemon-catalog.json',{signal:AbortSignal.timeout(20000)});
     if(!response.ok)throw Error('Pokémon catalog not published');
     const data=await response.json();
     if(!data||data.schema!=='vault-pokemon-tcg-v1'||!Array.isArray(data.items))throw Error('Invalid Pokémon catalog');
@@ -1890,18 +1909,19 @@ body.v11clean .museum-banner{display:none!important}
 const p=document.getElementById('v11searchpanel'),q=document.getElementById('v11q'),results=document.getElementById('v11results');
 if(!p||!q||!results)return;
 const quick=document.createElement('div');quick.id='v12quick';
-for(const word of ['Daredevil','Batman','Spider-Man','LEGO','Star Wars']){
+for(const word of ['Daredevil','Batman','Spider-Man','LEGO','Star Wars','Hot Toys','Pokémon Cards']){
 const b=document.createElement('button');b.type='button';b.textContent=word;b.onclick=()=>{q.value=word;document.getElementById('v11go').click()};quick.appendChild(b)
 }
 q.after(quick);
 const filters=document.createElement('div');filters.id='v12filters';
 let active='All';
-for(const cat of ['All','Funko Pops','Action figures','Comic books','Movies','Books']){
+for(const cat of ['All','Funko Pops','Action figures','Hot Toys','Trading cards','Comic books','Movies','Books']){
 const b=document.createElement('button');b.type='button';b.textContent=cat;b.setAttribute('aria-pressed',cat==='All');
 b.onclick=()=>{active=cat;for(const x of filters.children)x.setAttribute('aria-pressed',String(x===b));apply()};
 filters.appendChild(b)
 }
 quick.after(filters);
+p.addEventListener('vault:catalog-search',()=>{if(active!=='All')filters.firstElementChild.click()});
 const note=document.createElement('p');note.id='v12note';note.textContent='Results depend on connected sources. Funko and action figures require imported catalog records; comic books may appear as book editions. This is not a complete market catalog.';filters.after(note);
 function apply(){
 for(const card of results.children){

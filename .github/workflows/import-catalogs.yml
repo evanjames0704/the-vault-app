@@ -26,6 +26,7 @@ on:
           - sideshow
           - marvel-legends
           - bbts
+          - hot-toys
           - hasbro
           - mcfarlane
           - mephitsu
@@ -60,6 +61,7 @@ jobs:
               python tools/import_funko.py --url 'https://funko.com/all-funko-products/' --output output/funko-catalog.json || echo 'Funko import incomplete'
               python tools/import_marvel_legends.py --url 'https://legendsverse.com/checklist/marvel-legends/figures' --output output/marvel-legends.json || echo 'Marvel Legends unavailable; no bypass attempted'
               python tools/import_sideshow.py --pages "$PAGES" --output output/sideshow-catalog.json || echo 'Sideshow unavailable; no bypass attempted'
+              python tools/import_bbts.py --hot-toys --output output/hot-toys-catalog.json || echo 'Hot Toys catalog unavailable'
               python tools/import_bbts.py --output output/bbts-catalog.json || echo 'BBTS unavailable; no bypass attempted'
               python tools/import_manufacturer.py --source hasbro --output output/hasbro-catalog.json || echo 'Hasbro unavailable; no bypass attempted'
               python tools/import_manufacturer.py --source mcfarlane --output output/mcfarlane-catalog.json || echo 'McFarlane unavailable; no bypass attempted'
@@ -71,6 +73,7 @@ jobs:
               if ! [[ "$PAGES" =~ ^[0-9]+$ ]] || (( PAGES < 1 || PAGES > 25 )); then echo 'Invalid pages'; exit 1; fi
               python tools/import_sideshow.py --pages "$PAGES" --output output/sideshow-catalog.json ;;
             marvel-legends) python tools/import_marvel_legends.py --url 'https://legendsverse.com/checklist/marvel-legends/figures' --output output/marvel-legends.json ;;
+            hot-toys) python tools/import_bbts.py --hot-toys --output output/hot-toys-catalog.json ;;
             bbts) python tools/import_bbts.py --output output/bbts-catalog.json ;;
             hasbro) python tools/import_manufacturer.py --source hasbro --output output/hasbro-catalog.json ;;
             mcfarlane) python tools/import_manufacturer.py --source mcfarlane --output output/mcfarlane-catalog.json ;;
@@ -115,7 +118,7 @@ jobs:
           import json
           from pathlib import Path
           root=Path('website')
-          names={'funko':'funko-catalog.json','marvel-legends':'marvel-legends.json','sideshow':'sideshow-catalog.json','bbts':'bbts-catalog.json','hasbro':'hasbro-catalog.json','mcfarlane':'mcfarlane-catalog.json','mephitsu':'mephitsu-catalog.json','pokemon':'pokemon-catalog.json'}
+          names={'funko':'funko-catalog.json','marvel-legends':'marvel-legends.json','sideshow':'sideshow-catalog.json','bbts':'bbts-catalog.json','hot-toys':'hot-toys-catalog.json','hasbro':'hasbro-catalog.json','mcfarlane':'mcfarlane-catalog.json','mephitsu':'mephitsu-catalog.json','pokemon':'pokemon-catalog.json'}
           status={
               'lego': {'available': True, 'count': len(json.loads((root/'lego-catalog.json').read_text()))},
               'historical-funko': {'available': True, 'count': len(json.loads((root/'historical-funko.json').read_text()))},
