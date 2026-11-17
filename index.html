@@ -1863,6 +1863,15 @@ async function search(){
   $('v11state').textContent=(visible.length?visible.length+' matching collectibles':'No matches in this category')+
     (notices.length?' · '+notices.join(' · '):'');
   renderBatch();
+  if (!visible.length) {
+   const fallback=document.createElement('p');
+   const ebay=document.createElement('a');
+   const url=new URL('https://www.ebay.com/sch/i.html');
+   url.search=new URLSearchParams({_nkw:[q,category==='All'?'':category].filter(Boolean).join(' ')});
+   ebay.href=url.href;ebay.target='_blank';ebay.rel='noopener noreferrer';
+   ebay.textContent='Look up this item on eBay';
+   fallback.append(ebay);out.append(fallback);
+  }
  };
  panel.onvaultfilter(panel.dataset.catalogCategory||'All');
 }
@@ -1928,7 +1937,7 @@ const b=document.createElement('button');b.type='button';b.textContent=word;b.on
 q.after(quick);
 const filters=document.createElement('div');filters.id='v12filters';
 let active='All';
-for(const cat of ['All','Funko Pops','Action figures','Hot Toys','Trading cards','Comic books','Movies','Books']){
+for(const cat of ['All','Funko Pops','Action figures','Hot Toys','Trading cards','Comic books','Sports cards','Movies','Books']){
 const b=document.createElement('button');b.type='button';b.textContent=cat;b.setAttribute('aria-pressed',cat==='All');
 b.onclick=()=>{active=cat;p.dataset.catalogCategory=cat;for(const x of filters.children)x.setAttribute('aria-pressed',String(x===b));p.onvaultfilter?.(cat)};
 filters.appendChild(b)
@@ -1942,6 +1951,17 @@ const scan=document.createElement('button');scan.type='button';scan.textContent=
  advanced.open=true;p.hidden=true;button.scrollIntoView({behavior:'smooth',block:'center'});button.click();
 };
 document.getElementById('v11manual').after(scan);
+for (const category of ['Comic books','Sports cards']) {
+ const button=document.createElement('button');
+ button.type='button';button.textContent=category==='Comic books'?'Add comic':'Add sports card';
+ button.onclick=()=>{
+  document.getElementById('v11manual').click();
+  const field=document.getElementById('category');
+  field.value=category;field.dispatchEvent(new Event('change',{bubbles:true}));
+  document.getElementById('name').value=q.value.trim();
+ };
+ document.getElementById('v11manual').after(button);
+}
 const title=p.querySelector('h2');if(title)title.textContent='Find & Add Collectibles';
 const desc=p.querySelector('p');if(desc)desc.textContent='Search by name, such as Pikachu or Charizard. Use Trading cards to see just the cards.';
 })();
