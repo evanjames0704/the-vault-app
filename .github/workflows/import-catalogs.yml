@@ -53,6 +53,23 @@ jobs:
           assert data['count'] == len(data['items']) and data['count'] > 0
           print('Catalog records:',data['count'])
           PY
+      - name: Prepare deployable website bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p website
+          cp index.html website/
+          for file in manifest.webmanifest service-worker.js sw.js icon-192.png icon-512.png lego-catalog.json marvel-legends.json sideshow-catalog.json funko-catalog.json; do
+            if [ -f "$file" ]; then cp "$file" website/; fi
+          done
+          cp output/*.json website/
+          cd website
+          zip -q -r ../the-vault-website-preview.zip .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: the-vault-website-preview
+          path: the-vault-website-preview.zip
+          retention-days: 7
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ inputs.source }}-catalog-preview
