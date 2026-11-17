@@ -1732,6 +1732,24 @@ async function search(){
    return found;
   }catch(e){notices.push('McFarlane Toys catalog not loaded');return []}
  })());
+ // Mephitsu Marvel Legends checklist.
+ requests.push((async()=>{
+  try{
+   if(!window.vaultMephitsuCatalog){
+    const response=await fetch('./mephitsu-catalog.json',{cache:'no-cache',signal:AbortSignal.timeout(16000)});
+    if(!response.ok)throw Error('Mephitsu catalog not published');
+    const data=await response.json();
+    if(!data||data.schema!=='vault-mephitsu-v1'||!Array.isArray(data.items))throw Error('Invalid Mephitsu catalog');
+    window.vaultMephitsuCatalog=data.items;
+   }
+   const found=[];
+   for(const item of window.vaultMephitsuCatalog){
+    const x={name:String(item.name||''),category:'Marvel Legends',franchise:'Marvel',brand:'Hasbro',identifier:String(item.id||''),variant:String(item.variant||''),image:String(item.image||''),retailPrice:null,source:'Mephitsu Marvel Legends checklist'};
+    if(matches(x)){found.push(x);if(found.length>=500)break}
+   }
+   return found;
+  }catch(e){notices.push('Mephitsu catalog not loaded');return []}
+ })());
  // Official Funko catalog takes precedence over the historical community fallback.
  requests.push((async()=>{
   try{
