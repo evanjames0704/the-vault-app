@@ -23,7 +23,7 @@ def load_csv(url, input_path=None):
             data = response.read(35_000_000 + 1)
         if len(data) > 35_000_000:
             raise RuntimeError("Unexpectedly large catalog download")
-    if data[:2] == b"\\x1f\\x8b":
+    if data[:2] == bytes((0x1f, 0x8b)):
         data = gzip.decompress(data)
     return csv.DictReader(io.StringIO(data.decode("utf-8-sig")))
 
