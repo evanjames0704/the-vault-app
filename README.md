@@ -21,3 +21,9 @@ The existing Cloudflare Pages project is `the-vault-v123-test`. Deploy to that e
 ## Status
 
 Source imported and progressive web app shell added. Production verification, end-to-end testing, and Cloudflare deployment are not yet complete.
+
+## eBay pricing
+
+Discover can look up eBay catalog editions and show active US Buy It Now prices for a selected edition or search. Asking prices exclude shipping and tax. Sold listings open on eBay. These lookups do not change collection values.
+
+Configure `EBAY_CLIENT_ID` and `EBAY_CLIENT_SECRET` as encrypted secrets in the existing Cloudflare Pages project. Use production keys with Browse access and the `commerce.catalog.readonly` scope for catalog lookup. To publish the built `website/` directory with its same-origin endpoint, run `npx wrangler pages deploy website --project-name the-vault-v123-test` from the repository root so Wrangler can find `functions/`. Keep the keys out of site files and GitHub.

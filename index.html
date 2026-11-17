@@ -1996,6 +1996,82 @@ try{const raw=sessionStorage.getItem(KEY),data=raw&&JSON.parse(raw);if(data?.fie
 
 <style id="vault-ebay-research-style">#vaultEbayResearch{border:1px solid #735b33;background:#19150f;border-radius:18px;padding:17px;margin:16px 0;color:#e9d5ab}#vaultEbayResearch h3{margin:0 0 8px;color:#f4d69b}#vaultEbayResearch input{width:100%;box-sizing:border-box;padding:12px;background:#0d0d0c;border:1px solid #705d3b;border-radius:10px;color:#fff;margin:10px 0}#vaultEbayResearch a{display:inline-block;padding:11px 15px;border-radius:10px;background:#d3ac63;color:#191208;text-decoration:none;font-weight:750;margin:4px 7px 4px 0}#vaultEbayResearch small{display:block;line-height:1.5;color:#c2b7a4;margin-top:8px}</style>
 <script id="vault-ebay-research-script">
-(()=>{'use strict';const screen=document.querySelector('[data-v13screen="discover"]');if(!screen)return;const card=document.createElement('section');card.id='vaultEbayResearch';card.innerHTML='<h3>eBay collectible research</h3><p>Compare current eBay asking prices and completed sales. No automatic import or unverified market values.</p>';const q=document.createElement('input');q.type='search';q.placeholder='Collectible name, number or edition';q.setAttribute('aria-label','Search eBay collectibles');card.appendChild(q);const active=document.createElement('a');active.textContent='Current listings';active.target='_blank';active.rel='noopener noreferrer';card.appendChild(active);const sold=document.createElement('a');sold.textContent='Sold listings';sold.target='_blank';sold.rel='noopener noreferrer';card.appendChild(sold);const notice=document.createElement('small');notice.textContent='eBay results open on eBay. Live price synchronization is not yet connected.';card.appendChild(notice);const update=()=>{const base='https://www.ebay.com/sch/i.html?_nkw='+encodeURIComponent(q.value.trim()||'collectibles');active.href=base;sold.href=base+'&LH_Sold=1&LH_Complete=1'};q.addEventListener('input',update);update();screen.appendChild(card)})();
+(() => {
+  'use strict';
+  const screen = document.querySelector('[data-v13screen="discover"]');
+  if (!screen) return;
+  const card = document.createElement('section');
+  card.id = 'vaultEbayResearch';
+  card.innerHTML = `<h3>eBay collectible pricing</h3>
+    <form><input type="search" aria-label="Collectible name or barcode" placeholder="Collectible name or barcode" maxlength="100" required minlength="2">
+    <button class="v13-quiet" type="submit" value="catalog">Find exact edition</button>
+    <button class="v13-quiet" type="submit" value="listings">Find asking prices</button></form>
+    <small role="status">US Buy It Now asking prices exclude shipping and tax.</small>
+    <ul></ul><a target="_blank" rel="noopener noreferrer">View sold listings on eBay</a>`;
+  screen.appendChild(card);
+  const form = card.querySelector('form'), input = form.querySelector('input');
+  const status = card.querySelector('[role="status"]'), list = card.querySelector('ul');
+  const sold = card.querySelector('a');
+  const currency = new Intl.NumberFormat('en-US', {style:'currency', currency:'USD'});
+  let currentSearch;
+  function updateSoldLink(query) {
+    const url = new URL('https://www.ebay.com/sch/i.html');
+    url.search = new URLSearchParams({_nkw: query || 'collectibles', LH_Sold: '1', LH_Complete: '1'});
+    sold.href = url.href;
+  }
+  async function search(mode, query, epid = '') {
+    currentSearch?.abort();
+    const controller = new AbortController();
+    currentSearch = controller;
+    list.replaceChildren();
+    status.textContent = 'Searching eBay…';
+    updateSoldLink(query);
+    try {
+      const params = new URLSearchParams({mode, q: query.slice(0, 100)});
+      if (epid) params.set('epid', epid);
+      const response = await fetch('/api/ebay/search?' + params, {
+        signal: AbortSignal.any([controller.signal, AbortSignal.timeout(16000)]),
+        cache: 'no-store',
+      });
+      if (!response.headers.get('Content-Type')?.includes('application/json')) {
+        throw Error('Live eBay pricing has not been connected to this deployment.');
+      }
+      const data = await response.json();
+      if (!response.ok) throw Error(data.error || 'eBay search is unavailable.');
+      if (controller.signal.aborted) return;
+      status.textContent = mode === 'catalog'
+        ? (data.results.length ? 'Choose an edition to see its asking prices.' : 'No matching eBay catalog editions.')
+        : (data.results.length ? 'US Buy It Now asking prices · excludes shipping and tax · checked ' +
+          new Date(data.observedAt).toLocaleTimeString() : 'No matching Buy It Now prices.');
+      for (const result of data.results) {
+        const row = document.createElement('li');
+        if (mode === 'catalog') {
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.className = 'v13-quiet';
+          button.textContent = result.title;
+          button.onclick = () => search('listings', result.title, result.epid);
+          row.append(button);
+        } else {
+          const link = document.createElement('a');
+          link.href = result.url;
+          link.target = '_blank';
+          link.rel = 'noopener noreferrer';
+          link.textContent = result.title;
+          row.append(currency.format(result.price), result.condition ? ' · ' + result.condition + ' ' : ' ', link);
+        }
+        list.append(row);
+      }
+    } catch (error) {
+      if (!controller.signal.aborted) status.textContent = error.name === 'TimeoutError' ? 'The eBay search timed out.' : error.message;
+    }
+  }
+  form.addEventListener('submit', event => {
+    event.preventDefault();
+    search(event.submitter?.value || 'listings', input.value.trim());
+  });
+  input.addEventListener('input', () => updateSoldLink(input.value.trim()));
+  updateSoldLink('');
+})();
 </script>
 </body></html>
