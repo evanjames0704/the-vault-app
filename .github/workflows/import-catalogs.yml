@@ -12,6 +12,8 @@ on:
           - sideshow
           - marvel-legends
           - bbts
+          - hasbro
+          - mcfarlane
       pages:
         description: "Sideshow pages (1-25)"
         required: false
@@ -43,6 +45,8 @@ jobs:
               python tools/import_marvel_legends.py --url 'https://legendsverse.com/checklist/marvel-legends/figures?view=table' --output output/marvel-legends.json || echo 'Marvel Legends unavailable; no bypass attempted'
               python tools/import_sideshow.py --pages "$PAGES" --output output/sideshow-catalog.json || echo 'Sideshow unavailable; no bypass attempted'
               python tools/import_bbts.py --output output/bbts-catalog.json || echo 'BBTS unavailable; no bypass attempted'
+              python tools/import_manufacturer.py --source hasbro --output output/hasbro-catalog.json || echo 'Hasbro unavailable; no bypass attempted'
+              python tools/import_manufacturer.py --source mcfarlane --output output/mcfarlane-catalog.json || echo 'McFarlane unavailable; no bypass attempted'
               ;;
             funko) python tools/import_funko.py --url 'https://funko.com/all-funko-products/' --output output/funko-catalog.json ;;
             sideshow)
@@ -50,6 +54,8 @@ jobs:
               python tools/import_sideshow.py --pages "$PAGES" --output output/sideshow-catalog.json ;;
             marvel-legends) python tools/import_marvel_legends.py --url 'https://legendsverse.com/checklist/marvel-legends/figures?view=table' --output output/marvel-legends.json ;;
             bbts) python tools/import_bbts.py --output output/bbts-catalog.json ;;
+            hasbro) python tools/import_manufacturer.py --source hasbro --output output/hasbro-catalog.json ;;
+            mcfarlane) python tools/import_manufacturer.py --source mcfarlane --output output/mcfarlane-catalog.json ;;
             *) exit 1 ;;
           esac
       - name: Check output
@@ -75,7 +81,7 @@ jobs:
           set -euo pipefail
           mkdir -p website
           cp index.html website/
-          for file in manifest.webmanifest sw.js icon.svg marvel-legends.json sideshow-catalog.json funko-catalog.json bbts-catalog.json; do
+          for file in manifest.webmanifest sw.js icon.svg marvel-legends.json sideshow-catalog.json funko-catalog.json bbts-catalog.json hasbro-catalog.json mcfarlane-catalog.json; do
             if [ -f "$file" ]; then cp "$file" website/; fi
           done
           cp output/*.json website/
