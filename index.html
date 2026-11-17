@@ -1584,10 +1584,10 @@ body.v11clean .v11hide{display:none!important}
 </style>
 <section id="v11searchpanel" hidden>
 <h2>Add a collectible</h2>
-<p class="v11sub">Search the available Funko, LEGO, and imported figure catalogs together. Choose a matching photo and name, then enter what you paid.</p>
+<p class="v11sub">Search Funko, LEGO, Pokémon cards, and imported figure catalogs together. Choose a matching photo and name, then enter what you paid.</p>
 <input id="v11q" placeholder="Search Daredevil, Batman, Spider-Man..." autocomplete="off">
 <div style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0"><button id="v11go" type="button">Search all</button><button id="v11manual" type="button">Add manually</button><button id="v11close" type="button">Close</button></div>
-<div id="v11state" class="v11sub" role="status">Search Funko Pops, LEGO sets, and your imported figure catalogs.</div>
+<div id="v11state" class="v11sub" role="status">Search Funko Pops, LEGO sets, Pokémon cards, and imported figures.</div>
 <div id="v11results" class="v11results"></div>
 </section>
 <script>
@@ -1619,7 +1619,8 @@ $('v11manual').onclick=manual;$('v11close').onclick=()=>{panel.hidden=true};
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 async function choose(x){
  const modal=document.getElementById('modal');if(modal){modal.classList.remove('hidden');modal.style.display='flex'}
- const values={name:x.name,category:x.category,franchise:x.franchise||'',brand:x.brand||'',identifier:x.identifier||'',variant:x.variant||''};
+ const selectedCategory=[...($('category')?.options||[])].find(option=>option.value.toLowerCase()===x.category.toLowerCase())?.value;
+ const values={name:x.name,category:selectedCategory||'Action figures',franchise:x.franchise||'',brand:x.brand||'',identifier:x.identifier||'',variant:x.variant||''};
  for(const [id,val] of Object.entries(values)){const el=$(id);if(el){el.value=val;el.dispatchEvent(new Event('change',{bubbles:true}))}}
  // Preserve the exact selected catalog artwork URL for the saved record.
  // Browser image display does not require a cross-origin fetch permission.
@@ -1634,10 +1635,14 @@ async function choose(x){
 let seq=0;
 async function search(){
  const q=$('v11q').value.trim(),token=++seq;
+ $('v11results').replaceChildren();
+ document.querySelector('.vault-load-more')?.remove();
  if(q.length<2){$('v11state').textContent='Enter at least two characters.';return}
  $('v11state').textContent='Searching collectible catalogs…';$('v11results').replaceChildren();
  const results=[],notices=[];
- const terms=q.toLowerCase().split(/\s+/).filter(Boolean);const matches=x=>{const hay=[x.name,x.franchise,x.variant,x.identifier,x.brand].join(' ').toLowerCase();return terms.every(t=>hay.includes(t))};
+ const normalize=value=>String(value??'').normalize('NFKD').replace(/\p{M}/gu,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+ const terms=normalize(q).split(' ').filter(Boolean);
+ const matches=x=>terms.length&&terms.every(term=>normalize([x.name,x.franchise,x.variant,x.identifier,x.brand,x.category,x.series,x.number,x.year].join(' ')).includes(term));
  try{const local=JSON.parse(localStorage.getItem('vault-v103-catalog')||'[]');if(Array.isArray(local))for(const x of local){const y={name:x.name,category:x.category,franchise:x.franchise,brand:x.brand,identifier:x.number,variant:x.variant,image:x.imageUrl,source:'Your imported figure catalog'};if(matches(y))results.push(y)}}catch{}
  const requests=[];
  // Licensed Marvel Legends catalog: locally bundled, no paid API.
@@ -1652,8 +1657,8 @@ async function search(){
    }
    const found=[];
    for(const item of window.vaultMarvelLegendsCatalog){
-    const x={name:String(item.name||''),category:'Action figures',franchise:'Marvel',brand:'Marvel Legends',identifier:String(item.identifier||''),variant:String(item.wave||item.variant||''),image:String(item.image||''),source:'Marvel Legends catalog'};
-    if(matches(x)){found.push(x);if(found.length>=500)break}
+    const x={name:String(item.name||''),category:'Action figures',franchise:'Marvel',brand:'Marvel Legends',identifier:String(item.identifier||''),variant:String(item.wave||item.variant||item.year||''),image:String(item.image||''),source:'Marvel Legends catalog'};
+    if(matches(x)){found.push(x)}
    }
    return found;
   }catch(e){notices.push('Marvel Legends catalog not loaded');return []}
@@ -1671,7 +1676,7 @@ async function search(){
    const found=[];
    for(const item of window.vaultSideshowCatalog){
     const x={name:String(item.name||''),category:String(item.category||'Collectibles'),franchise:String(item.franchise||''),brand:String(item.brand||'Sideshow'),identifier:String(item.identifier||''),variant:String(item.variant||''),image:String(item.image||''),retailPrice:(Number.isFinite(Number(item.retailPrice))&&item.retailPrice!==null?Number(item.retailPrice):null),source:'Sideshow product catalog'};
-    if(matches(x)){found.push(x);if(found.length>=500)break}
+    if(matches(x)){found.push(x)}
    }
    return found;
   }catch(e){notices.push('Sideshow catalog not loaded');return []}
@@ -1689,7 +1694,7 @@ async function search(){
    const found=[];
    for(const item of window.vaultBBTSCatalog){
     const x={name:String(item.name||''),category:String(item.category||'Action figures'),franchise:String(item.franchise||''),brand:String(item.brand||'BigBadToyStore'),identifier:String(item.identifier||''),variant:String(item.variant||''),image:String(item.image||''),retailPrice:(item.retailPrice===null||item.retailPrice===undefined?null:Number(item.retailPrice)),source:'BigBadToyStore catalog'};
-    if(matches(x)){found.push(x);if(found.length>=500)break}
+    if(matches(x)){found.push(x)}
    }
    return found;
   }catch(e){notices.push('BBTS catalog not loaded');return []}
@@ -1707,8 +1712,8 @@ async function search(){
    }
    const found=[];
    for(const item of window.vaultManufacturerCatalogs['hasbro']){
-    const x={name:String(item.name||''),category:String(item.category||'Action figures'),franchise:String(item.franchise||''),brand:String(item.brand||'Hasbro'),identifier:String(item.identifier||''),variant:String(item.variant||''),image:String(item.image||''),retailPrice:(item.retailPrice==null?null:Number(item.retailPrice)),source:'Hasbro catalog'};
-    if(matches(x)){found.push(x);if(found.length>=500)break}
+    const x={name:String(item.name||''),category:String(item.category||'Action figures'),franchise:String(item.franchise||''),brand:String(item.brand||'Hasbro'),identifier:String(item.identifier||''),variant:String(item.variant||item.series||''),image:String(item.image||''),retailPrice:(item.retailPrice==null?null:Number(item.retailPrice)),source:'Hasbro catalog'};
+    if(matches(x)){found.push(x)}
    }
    return found;
   }catch(e){notices.push('Hasbro catalog not loaded');return []}
@@ -1726,8 +1731,8 @@ async function search(){
    }
    const found=[];
    for(const item of window.vaultManufacturerCatalogs['mcfarlane']){
-    const x={name:String(item.name||''),category:String(item.category||'Action figures'),franchise:String(item.franchise||''),brand:String(item.brand||'McFarlane Toys'),identifier:String(item.identifier||''),variant:String(item.variant||''),image:String(item.image||''),retailPrice:(item.retailPrice==null?null:Number(item.retailPrice)),source:'McFarlane Toys catalog'};
-    if(matches(x)){found.push(x);if(found.length>=500)break}
+    const x={name:String(item.name||''),category:String(item.category||'Action figures'),franchise:String(item.franchise||''),brand:String(item.brand||'McFarlane Toys'),identifier:String(item.identifier||''),variant:String(item.variant||item.series||''),image:String(item.image||''),retailPrice:(item.retailPrice==null?null:Number(item.retailPrice)),source:'McFarlane Toys catalog'};
+    if(matches(x)){found.push(x)}
    }
    return found;
   }catch(e){notices.push('McFarlane Toys catalog not loaded');return []}
@@ -1744,8 +1749,8 @@ async function search(){
    }
    const found=[];
    for(const item of window.vaultMephitsuCatalog){
-    const x={name:String(item.name||''),category:'Marvel Legends',franchise:'Marvel',brand:'Hasbro',identifier:String(item.id||''),variant:String(item.variant||''),image:String(item.image||''),retailPrice:null,source:'Mephitsu Marvel Legends checklist'};
-    if(matches(x)){found.push(x);if(found.length>=500)break}
+    const x={name:String(item.name||''),category:'Action figures',franchise:'Marvel',brand:'Hasbro Marvel Legends',identifier:String(item.id||''),variant:String(item.variant||''),image:String(item.image||''),retailPrice:null,source:'Mephitsu Marvel Legends checklist'};
+    if(matches(x)){found.push(x)}
    }
    return found;
   }catch(e){notices.push('Mephitsu catalog not loaded');return []}
@@ -1762,8 +1767,8 @@ async function search(){
    }
    const found=[];
    for(const item of window.vaultPokemonCatalog){
-    const x={name:String(item.name||''),category:'Trading Cards',franchise:'Pokémon',brand:'Pokémon',identifier:String(item.id||''),variant:String(item.variant||''),image:String(item.image||''),retailPrice:null,source:'Pokémon TCG data',series:String(item.series||''),number:String(item.number||'')};
-    if(matches(x)){found.push(x);if(found.length>=2000)break}
+    const x={name:String(item.name||''),category:'Trading cards',franchise:'Pokémon',brand:'Pokémon',identifier:String(item.id||''),variant:String(item.variant||''),image:String(item.image||''),retailPrice:null,source:'Pokémon TCG data',series:String(item.series||''),number:String(item.number||'')};
+    if(matches(x)){found.push(x)}
    }
    return found;
   }catch(e){notices.push('Pokémon catalog not loaded');return []}
@@ -1781,7 +1786,7 @@ async function search(){
    const found=[];
    for(const item of window.vaultOfficialFunkoCatalog){
     const x={name:String(item.name||''),category:'Funko Pops',franchise:String(item.franchise||''),brand:'Funko',identifier:String(item.identifier||''),variant:String(item.variant||''),image:String(item.image||''),retailPrice:(Number.isFinite(Number(item.retailPrice))&&item.retailPrice!==null?Number(item.retailPrice):null),source:'Official Funko product catalog'};
-    if(matches(x)){found.push(x);if(found.length>=500)break}
+    if(matches(x)){found.push(x)}
    }
    return found;
   }catch(e){notices.push('Official Funko catalog not loaded; historical catalog may still be available');return []}
@@ -1789,8 +1794,8 @@ async function search(){
  // Public historical Funko dataset. Loaded once per browser session; never sent to Supabase.
  requests.push((async()=>{
   try{
-   if(!window.vaultFunkoCatalog){const r=await fetch('https://raw.githubusercontent.com/kennymkchan/funko-pop-data/master/funko_pop.json',{signal:AbortSignal.timeout(18000)});if(!r.ok)throw Error('HTTP '+r.status);const j=await r.json();const rows=Array.isArray(j)?j:(Array.isArray(j.items)?j.items:Array.isArray(j.data)?j.data:null);if(!rows)throw Error('Invalid dataset');window.vaultFunkoCatalog=rows}
-   const found=[];for(const x of window.vaultFunkoCatalog){const name=String(x.title||x.name||'');const series=Array.isArray(x.series)?x.series.join(' · '):String(x.series||'');if(terms.every(t=>(name+' '+series).toLowerCase().includes(t))){found.push({name,category:'Funko Pops',franchise:series,brand:'Funko',identifier:'',variant:series,image:(()=>{const candidates=[x.image,x.image_url,x.imageUrl,x.img,x.photo,x.thumbnail,x.picture,x.images?.[0],x.image?.url,x.image?.src,x.images?.[0]?.url,x.images?.[0]?.src];return candidates.find(v=>typeof v==='string'&&/^https:\/\//i.test(v))||''})(),source:'Funko community dataset (through 2021)'});if(found.length>=70)break}}return found;
+   if(!window.vaultFunkoCatalog){const r=await fetch('./historical-funko.json',{signal:AbortSignal.timeout(18000)});if(!r.ok)throw Error('HTTP '+r.status);const j=await r.json();const rows=Array.isArray(j)?j:(Array.isArray(j.items)?j.items:Array.isArray(j.data)?j.data:null);if(!rows)throw Error('Invalid dataset');window.vaultFunkoCatalog=rows}
+   const found=[];for(const x of window.vaultFunkoCatalog){const name=String(x.title||x.name||'');const series=Array.isArray(x.series)?x.series.join(' · '):String(x.series||'');if(matches({name,category:'Funko Pops',franchise:series,brand:'Funko',identifier:x.handle})){found.push({name,category:'Funko Pops',franchise:series,brand:'Funko',identifier:String(x.handle||''),variant:series,image:(()=>{const candidates=[x.imageName,x.image,x.image_url,x.imageUrl,x.img,x.photo,x.thumbnail,x.picture,x.images?.[0],x.image?.url,x.image?.src,x.images?.[0]?.url,x.images?.[0]?.src];return candidates.find(v=>typeof v==='string'&&/^https:\/\//i.test(v))||''})(),source:'Funko community dataset (through 2021)'})}}return found;
   }catch(e){notices.push('Funko dataset could not load');return []}
  })());
  // The former toy endpoint returned HTTP 404 and was removed.
@@ -1799,19 +1804,19 @@ async function search(){
  requests.push((async()=>{
   try{
    if(!window.vaultLegoCatalog){const response=await fetch('./lego-catalog.json',{signal:AbortSignal.timeout(16000)});if(!response.ok)throw Error('LEGO catalog unavailable');window.vaultLegoCatalog=await response.json()}
-   const words=q.toLowerCase().split(/\s+/).filter(Boolean);
+
    const found=[];
-   for(const x of window.vaultLegoCatalog){const hay=(x[0]+' '+x[1]+' '+x[3]+' lego').toLowerCase();if(words.every(w=>hay.includes(w))){found.push({name:x[1],category:'LEGO',franchise:x[3],brand:'LEGO',identifier:x[0],variant:x[2]+' · '+x[0],image:x[4],source:'Rebrickable bulk catalog'});if(found.length>=80)break}}
+   for(const x of window.vaultLegoCatalog){if(matches({name:x[1],category:'LEGO',identifier:x[0],franchise:x[3],year:x[2]})){found.push({name:x[1],category:'LEGO',franchise:x[3],brand:'LEGO',identifier:x[0],variant:x[2]+' · '+x[0],image:x[4],source:'Rebrickable bulk catalog'})}}
    return found;
   }catch(e){notices.push('Bundled LEGO catalog could not load');return []}
  })());
  const remote=await Promise.all(requests);if(token!==seq)return;remote.forEach(a=>results.push(...a));
  const unique=[...new Map(results.filter(x=>x.name).map(x=>[[x.category,x.name,x.identifier,x.variant].join('|').toLowerCase(),x])).values()];
- $('v11state').textContent=unique.length+' matching collectibles (load more to browse all). '+(notices.length?notices.join(' · ')+'. ':'')+'Funko, Sideshow, Marvel Legends and BBTS records appear only after their catalogs are published. Manufacturer retail prices are not resale market values.';
+ $('v11state').textContent=unique.length+' matching collectibles (load more to browse all). '+(notices.length?notices.join(' · ')+'. ':'');
  const out=$('v11results');out.replaceChildren();
  const batch=60;let shown=0;const renderBatch=()=>{unique.slice(shown,shown+batch).forEach(x=>{
   const card=document.createElement('div');card.className='v11item';
-  if(x.image&&/^https:\/\/[^\s"'<>]+$/i.test(x.image)){const img=document.createElement('img');img.src=x.image;img.alt=x.name+' product photo';img.loading='lazy';img.decoding='async';img.referrerPolicy='no-referrer';img.onerror=()=>{img.remove();const fallback=document.createElement('div');fallback.style.cssText='height:190px;display:flex;align-items:center;justify-content:center;background:#352b20;color:#cdbd9d;text-align:center;border-radius:8px;padding:12px';fallback.textContent='Photo unavailable from catalog';card.prepend(fallback)};card.appendChild(img)}
+  if(x.image&&/^(?:https:\/\/[^\s"'<>]+|catalog-images\/[a-z0-9_.-]+)$/i.test(x.image)){const img=document.createElement('img');img.src=x.image;img.alt=x.name+' product photo';img.loading='lazy';img.decoding='async';img.referrerPolicy='no-referrer';img.onerror=()=>{img.remove();const fallback=document.createElement('div');fallback.style.cssText='height:190px;display:flex;align-items:center;justify-content:center;background:#352b20;color:#cdbd9d;text-align:center;border-radius:8px;padding:12px';fallback.textContent='Photo unavailable from catalog';card.prepend(fallback)};card.appendChild(img)}
   if(!card.querySelector('img')){const fallback=document.createElement('div');fallback.className='vault-photo-missing';fallback.textContent='Photo not available';card.appendChild(fallback)}
   const title=document.createElement('strong');title.textContent=x.name;card.appendChild(title);
   const desc=document.createElement('div');desc.className='v11sub';desc.textContent=[x.category,x.brand,x.variant,x.source].filter(Boolean).join(' · ');card.appendChild(desc);

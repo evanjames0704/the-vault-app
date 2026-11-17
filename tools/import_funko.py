@@ -56,9 +56,8 @@ def main():
  ap.add_argument("--output",type=Path,default=Path("funko-catalog.json"))
  args=ap.parse_args();pages=[]
  if args.url:
-  import requests
-  r=requests.get(args.url,timeout=25,headers={"User-Agent":"TheVaultCatalogImporter/1.0"});r.raise_for_status()
-  pages=[(r.text,args.url)]
+  from catalog_pages import listing_pages
+  pages=listing_pages(args.url, 'button.btn-pagination.next[data-url]:not([disabled])', "data-url")
  else:pages=[(p.read_text(encoding="utf-8"),BASE+"/all-funko-products/") for p in args.input]
  items={}
  for html,url in pages:

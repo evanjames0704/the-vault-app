@@ -45,13 +45,13 @@ def parse(html, page_url):
     # Checklist cards: figure page anchors containing heading and optional photo/year.
     for a in soup.select('a[href]'):
         href = urljoin(page_url, a.get("href",""))
-        if not href.startswith(BASE) or "/checklist/marvel-legends/" not in href: continue
-        if any(x in urlparse(href).path for x in ("/figures", "/price-guide", "/waves", "/characters", "/series", "/tags", "/202")): continue
-        heading = a.find(re.compile("^h[2-6]$"))
-        if not heading: continue
-        name = heading.get_text(" ", strip=True)
+        path = urlparse(href).path
+        if urlparse(href).hostname != "legendsverse.com" or not re.fullmatch(r"/checklist/marvel-legends/figures/[^/]+/?", path):
+            continue
+        name = a.get_text(" ", strip=True)
         if not name or len(name) > 180: continue
-        parent = a.parent
+        heading = a.find_parent(re.compile("^h[2-6]$"))
+        parent = heading.parent.parent if heading else a.parent
         img = a.find("img") or (parent.find("img") if parent else None)
         photo = ""
         if img:
@@ -63,6 +63,7 @@ def parse(html, page_url):
         year = re.search(r"\b(19\d{2}|20\d{2})\b", context)
         results[href] = {"id":"ml-"+re.sub(r"[^a-z0-9]+","-",urlparse(href).path.lower()).strip("-"),
             "name":name,"category":"Action figures","brand":"Marvel Legends",
+            "identifier":path.rstrip("/").rsplit("-", 1)[-1],
             "image":urljoin(page_url,photo) if photo else "", "sourceUrl":href,
             "year":int(year.group(1)) if year else None, "marketValue":None}
     return list(results.values())
@@ -78,10 +79,8 @@ def main():
     if args.input:
         pages=[(x.read_text(encoding="utf-8"), BASE+"/checklist/marvel-legends/figures") for x in args.input]
     else:
-        import requests
-        response=requests.get(args.url,timeout=25,headers={"User-Agent":"TheVaultCatalogImporter/1.0 (permission granted by publisher)"})
-        response.raise_for_status()
-        pages=[(response.text,args.url)]
+        from catalog_pages import listing_pages
+        pages = listing_pages(args.url)
     merged={}
     for html,url in pages:
         for item in parse(html,url): merged[item["sourceUrl"]]=item

@@ -2,10 +2,9 @@
 """Import BBTS product listing data when publicly accessible.
 No bot-block bypass. Supports saved authorized HTML via --input.
 """
-import argparse,json,re,time
+import argparse,json,re
 from pathlib import Path
 from urllib.parse import urljoin,urlparse
-import requests
 from bs4 import BeautifulSoup
 BASE="https://www.bigbadtoystore.com"
 def parse(html,url):
@@ -42,8 +41,9 @@ def parse(html,url):
  for a in soup.select("a[href]"):
   href=a.get("href","")
   if not ("/Product/" in href or "/product/" in href):continue
-  img=a.find("img")
-  name=(img.get("alt","") if img else "") or a.get("title","")
+  card=a.find_parent(class_="product-card")
+  img=a.find("img") or (card.find("img") if card else None)
+  name=a.get_text(" ",strip=True) or a.get("title","") or (img.get("alt","") if img else "")
   if name:add(name,href,(img.get("data-src") or img.get("src") or "") if img else "")
  return list(records.values())
 def main():
@@ -54,8 +54,8 @@ def main():
  a=p.parse_args()
  if a.input:pages=[(f.read_text(encoding="utf-8"),a.url) for f in a.input]
  else:
-  r=requests.get(a.url,timeout=30,headers={"User-Agent":"TheVaultCatalogImporter/1.0"})
-  r.raise_for_status();pages=[(r.text,a.url)]
+  from catalog_pages import listing_pages
+  pages=listing_pages(a.url)
  items={}
  for html,url in pages:
   for item in parse(html,url):items[item["id"]]=item

@@ -1,5 +1,5 @@
 // THE VAULT: cache app shell; never cache remote API responses.
-const CACHE='the-vault-collector-release-20261117';
+const CACHE='the-vault-collector-catalog-pagination-20261117';
 const SHELL=['./','./index.html','./manifest.webmanifest','./icon.svg','./icon-192.png','./icon-512.png','./apple-touch-icon.png'];
 self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE).then(c=>c.addAll(SHELL)).then(()=>self.skipWaiting()));});
 self.addEventListener('activate',event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>(k.startsWith('vault-shell-')||k.startsWith('the-vault-'))&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));});
