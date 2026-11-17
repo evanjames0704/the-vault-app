@@ -1623,7 +1623,7 @@ async function choose(x){
  for(const [id,val] of Object.entries(values)){const el=$(id);if(el){el.value=val;el.dispatchEvent(new Event('change',{bubbles:true}))}}
  // Preserve the exact selected catalog artwork URL for the saved record.
  // Browser image display does not require a cross-origin fetch permission.
- if(x.image&&/^https:\/\/[^\s"'<>]+$/i.test(x.image)){
+ if(x.image&&(/^(https:\/\/|catalog-images\/)/i.test(x.image))){
    window.vaultSelectedCatalogImage=x.image;
    const preview=$('vaultPreviewImage'),wrap=$('vaultPhotoPreview');
    if(preview&&wrap){preview.src=x.image;wrap.style.display='flex';}
