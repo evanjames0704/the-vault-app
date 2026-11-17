@@ -1640,6 +1640,24 @@ async function search(){
  const terms=q.toLowerCase().split(/\s+/).filter(Boolean);const matches=x=>{const hay=[x.name,x.franchise,x.variant,x.identifier,x.brand].join(' ').toLowerCase();return terms.every(t=>hay.includes(t))};
  try{const local=JSON.parse(localStorage.getItem('vault-v103-catalog')||'[]');if(Array.isArray(local))for(const x of local){const y={name:x.name,category:x.category,franchise:x.franchise,brand:x.brand,identifier:x.number,variant:x.variant,image:x.imageUrl,source:'Your imported figure catalog'};if(matches(y))results.push(y)}}catch{}
  const requests=[];
+ // Licensed Marvel Legends catalog: locally bundled, no paid API.
+ requests.push((async()=>{
+  try{
+   if(!window.vaultMarvelLegendsCatalog){
+    const response=await fetch('./marvel-legends.json',{cache:'no-cache',signal:AbortSignal.timeout(16000)});
+    if(!response.ok)throw Error('Marvel Legends catalog not published');
+    const data=await response.json();
+    if(!data||data.schema!=='vault-marvel-legends-v1'||!Array.isArray(data.items))throw Error('Invalid Marvel Legends catalog');
+    window.vaultMarvelLegendsCatalog=data.items;
+   }
+   const found=[];
+   for(const item of window.vaultMarvelLegendsCatalog){
+    const x={name:String(item.name||''),category:'Action figures',franchise:'Marvel',brand:'Marvel Legends',identifier:String(item.identifier||''),variant:String(item.wave||item.variant||''),image:String(item.image||''),source:'Marvel Legends catalog'};
+    if(matches(x)){found.push(x);if(found.length>=500)break}
+   }
+   return found;
+  }catch(e){notices.push('Marvel Legends catalog not loaded');return []}
+ })());
  // Public historical Funko dataset. Loaded once per browser session; never sent to Supabase.
  requests.push((async()=>{
   try{
@@ -1661,7 +1679,7 @@ async function search(){
  })());
  const remote=await Promise.all(requests);if(token!==seq)return;remote.forEach(a=>results.push(...a));
  const unique=[...new Map(results.filter(x=>x.name).map(x=>[[x.category,x.name,x.identifier,x.variant].join('|').toLowerCase(),x])).values()];
- $('v11state').textContent=unique.length+' matching collectibles (load more to browse all). '+(notices.length?notices.join(' · ')+'. ':'')+'Funko records are historical; LEGO is bundled locally. Action-figure coverage remains incomplete. Prices are entered by you.';
+ $('v11state').textContent=unique.length+' matching collectibles (load more to browse all). '+(notices.length?notices.join(' · ')+'. ':'')+'Funko records are historical; LEGO is bundled locally. Marvel Legends entries appear when the licensed catalog has been imported. Prices require verified sources or manual entry.';
  const out=$('v11results');out.replaceChildren();
  const batch=60;let shown=0;const renderBatch=()=>{unique.slice(shown,shown+batch).forEach(x=>{
   const card=document.createElement('div');card.className='v11item';
