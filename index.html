@@ -1944,7 +1944,7 @@ body.v11clean #v12advancedpanels:not([open]) > section{display:none!important}
 </script>
 
 <style id="vault13styles">
-body.v13-app{padding-bottom:88px!important;background:#090909!important}body.v13-app main.wrap{display:none!important}body.v13-app #v13tools main.wrap{display:block!important;padding:0;margin:0;width:100%}#v13tools main.wrap>.hero,#v13tools main.wrap>.stats,#v13tools #v82Estimator,#v13tools .pro-panel{display:none!important}body.v11clean #v13tools #v101fig,body.v11clean #v13tools #v103{display:block!important}
+body.v13-app{padding-bottom:88px!important;background:#090909!important}body.v13-app main.wrap{display:none!important}
 body.v13-app>#v101fig,body.v13-app>#v103{display:none!important}
 #vault13app{max-width:650px;margin:0 auto;padding:24px 18px 32px;color:#f3ead9;font-family:system-ui,-apple-system,sans-serif;min-height:75vh}
 .v13-top{display:flex;justify-content:space-between;align-items:center;margin:6px 0 26px}.v13-kicker{font-size:10px;letter-spacing:4px;color:#c9a96d;font-weight:700}.v13-logo{font-family:Georgia,serif;font-size:30px;letter-spacing:1px;margin:3px 0}.v13-round{border:1px solid #685337;border-radius:50%;background:#1b1711;color:#e8ca89;width:44px;height:44px;font-size:20px}
@@ -1959,7 +1959,6 @@ body.v13-app>#v101fig,body.v13-app>#v103{display:none!important}
   <div class="v13-hero"><div class="v13-value" id="v13value">—</div><div class="v13-muted" id="v13EstimateCoverage" aria-live="polite"></div></div>
   <div class="v13-metrics"><div class="v13-metric"><small class="v13-muted">Collectibles</small><b id="v13count">0</b></div><div class="v13-metric"><small class="v13-muted">Wishlist</small><b id="v13wish">0</b></div></div>
   <button class="v13-primary" id="v13homeadd">＋ Add a collectible</button>
-  <section id="v13tools" aria-labelledby="v13ToolsTitle"><h2 id="v13ToolsTitle" class="v13-heading">Collector Tools</h2></section>
  </div>
  <div class="v13-screen" data-v13screen="collection"><div class="v13-eyebrow">Private archive</div><h1 class="v13-heading">My Collection</h1><p class="v13-muted">Your saved pieces and personal inventory.</p><div class="v13-hero"><div class="v13-muted">Collection pricing</div><div class="v13-value" id="v13CatalogTotal">—</div><div class="v13-muted" id="v13CatalogCoverage" aria-live="polite"></div><div class="v13-muted" id="v13MarketCoverage"></div><div class="v13-muted" id="v13EbayCoverage" aria-live="polite"></div></div><div id="v13library" class="v13-host"></div></div>
  <div class="v13-screen" data-v13screen="discover"><div class="v13-eyebrow">Explore</div><h1 class="v13-heading">Discover collectibles</h1><p class="v13-muted">Search the available Funko and LEGO catalogs and any imported action figures inside THE VAULT.</p><button class="v13-primary" id="v13search">⌕ Find & add collectibles</button><button class="v13-quiet" id="v13manualadd" type="button" style="width:100%;margin:0 0 12px">＋ Add manually</button><div class="v13-card"><h3>Find photos, names, and editions</h3><p class="v13-muted">Search across available catalogs in one place. Results show product names and photos where the source provides them.</p><div id="v13catalognotice">Catalog matches fill in available photos and listed prices.</div></div></div>
@@ -2000,7 +1999,7 @@ body.v13-app>#v101fig,body.v13-app>#v103{display:none!important}
  const manualBtn=$('v11manual');if(manualBtn)manualBtn.onclick=()=>{if(catalogPanel)catalogPanel.hidden=true;openManual();};
  
 
- const m=document.querySelector('main.wrap');if(m){const sec=m.querySelectorAll(':scope > section');const library=[...sec].find(el=>el.querySelector('h2')?.textContent.trim()==='Collection Library');if(library){$('v13library').appendChild(library);library.style.display='block';}const backup=[...sec].find(el=>el.querySelector('#export')||el.querySelector('#import'));if(backup&&backup!==library)$('v13backup').appendChild(backup);const cloud=$('v54Cloud');if(cloud)$('v13cloud').appendChild(cloud);$('v13tools').appendChild(m);for(const id of ['v58Intel','v60Mega','v81Hub','v80Galleries','v103','v101fig']){const section=$(id);if(section)$('v13tools').appendChild(section)}}
+ const m=document.querySelector('main.wrap');if(m){const sec=m.querySelectorAll(':scope > section');const library=[...sec].find(el=>el.querySelector('h2')?.textContent.trim()==='Collection Library');if(library){$('v13library').appendChild(library);library.style.display='block';}const backup=[...sec].find(el=>el.querySelector('#export')||el.querySelector('#import'));if(backup&&backup!==library)$('v13backup').appendChild(backup);const cloud=$('v54Cloud');if(cloud)$('v13cloud').appendChild(cloud);}
  document.body.classList.add('v13-app');refresh();window.addEventListener('storage',refresh);window.addEventListener('vault:collection-updated',refresh);document.addEventListener('click',()=>setTimeout(refresh,300));
 })();
 </script>
