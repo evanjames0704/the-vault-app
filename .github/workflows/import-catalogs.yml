@@ -1,0 +1,60 @@
+name: Build free collectible catalogs
+on:
+  workflow_dispatch:
+    inputs:
+      source:
+        description: "Catalog to import"
+        required: true
+        type: choice
+        options:
+          - funko
+          - sideshow
+          - marvel-legends
+      pages:
+        description: "Sideshow pages (1-25)"
+        required: false
+        default: "5"
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: python -m pip install --disable-pip-version-check requests beautifulsoup4
+      - name: Import selected catalog
+        env:
+          SOURCE: ${{ inputs.source }}
+          PAGES: ${{ inputs.pages }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p output
+          case "$SOURCE" in
+            funko) python tools/import_funko.py --url 'https://funko.com/all-funko-products/' --output output/funko-catalog.json ;;
+            sideshow)
+              if ! [[ "$PAGES" =~ ^[0-9]+$ ]] || (( PAGES < 1 || PAGES > 25 )); then echo 'Invalid pages'; exit 1; fi
+              python tools/import_sideshow.py --pages "$PAGES" --output output/sideshow-catalog.json ;;
+            marvel-legends) python tools/import_marvel_legends.py --url 'https://legendsverse.com/checklist/marvel-legends/figures?view=table' --output output/marvel-legends.json ;;
+            *) exit 1 ;;
+          esac
+      - name: Check output
+        run: |
+          python - <<'PY'
+          import glob,json
+          files=glob.glob('output/*.json')
+          assert len(files)==1
+          data=json.load(open(files[0]))
+          assert data['count'] == len(data['items']) and data['count'] > 0
+          print('Catalog records:',data['count'])
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.source }}-catalog-preview
+          path: output/*.json
+          retention-days: 7
