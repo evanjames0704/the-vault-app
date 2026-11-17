@@ -1785,7 +1785,7 @@ async function search(){
    }
    const found=[];
    for(const item of window.vaultOfficialFunkoCatalog){
-    const x={name:String(item.name||''),category:'Funko Pops',franchise:String(item.franchise||''),brand:'Funko',identifier:String(item.identifier||''),variant:String(item.variant||''),image:String(item.image||''),retailPrice:(Number.isFinite(Number(item.retailPrice))&&item.retailPrice!==null?Number(item.retailPrice):null),source:'Official Funko product catalog'};
+    const x={name:String(item.name||''),category:String(item.category||'Funko Pops'),franchise:String(item.franchise||''),brand:'Funko',identifier:String(item.identifier||''),variant:String(item.variant||item.series||''),image:String(item.image||''),retailPrice:(Number.isFinite(Number(item.retailPrice))&&item.retailPrice!==null?Number(item.retailPrice):null),source:'Official Funko product catalog'};
     if(matches(x)){found.push(x)}
    }
    return found;

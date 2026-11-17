@@ -6,6 +6,12 @@ on:
       - 'index.html'
       - 'tools/**'
       - '.github/workflows/import-catalogs.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'tools/**'
+      - '.github/workflows/import-catalogs.yml'
   workflow_dispatch:
     inputs:
       source:
