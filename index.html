@@ -1658,6 +1658,24 @@ async function search(){
    return found;
   }catch(e){notices.push('Marvel Legends catalog not loaded');return []}
  })());
+ // Bundled Sideshow marketplace catalog: statues, sixth-scale figures, props and more.
+ requests.push((async()=>{
+  try{
+   if(!window.vaultSideshowCatalog){
+    const response=await fetch('./sideshow-catalog.json',{cache:'no-cache',signal:AbortSignal.timeout(16000)});
+    if(!response.ok)throw Error('Sideshow catalog not published');
+    const data=await response.json();
+    if(!data||data.schema!=='vault-sideshow-v1'||!Array.isArray(data.items))throw Error('Invalid Sideshow catalog');
+    window.vaultSideshowCatalog=data.items;
+   }
+   const found=[];
+   for(const item of window.vaultSideshowCatalog){
+    const x={name:String(item.name||''),category:String(item.category||'Collectibles'),franchise:String(item.franchise||''),brand:String(item.brand||'Sideshow'),identifier:String(item.identifier||''),variant:String(item.variant||''),image:String(item.image||''),source:'Sideshow product catalog'};
+    if(matches(x)){found.push(x);if(found.length>=500)break}
+   }
+   return found;
+  }catch(e){notices.push('Sideshow catalog not loaded');return []}
+ })());
  // Public historical Funko dataset. Loaded once per browser session; never sent to Supabase.
  requests.push((async()=>{
   try{
