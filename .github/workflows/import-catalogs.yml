@@ -70,6 +70,16 @@ jobs:
           done
           cp output/*.json website/
           python - <<'PY'
+          from bs4 import BeautifulSoup
+          from pathlib import Path
+          soup=BeautifulSoup(Path('website/index.html').read_text(encoding='utf-8'),'html.parser')
+          for i,script in enumerate(soup.find_all('script')):
+            if script.get('src') or not script.string: continue
+            Path(f'website/_syntax_{i}.js').write_text(script.string,encoding='utf-8')
+          PY
+          for script in website/_syntax_*.js; do node --check "$script"; done
+          rm website/_syntax_*.js
+          python - <<'PY'
           from pathlib import Path
           import json
           root=Path("website")
