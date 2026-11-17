@@ -20,6 +20,7 @@ on:
           - bbts
           - hasbro
           - mcfarlane
+          - mephitsu
       pages:
         description: "Sideshow pages (1-25)"
         required: false
@@ -53,6 +54,7 @@ jobs:
               python tools/import_bbts.py --output output/bbts-catalog.json || echo 'BBTS unavailable; no bypass attempted'
               python tools/import_manufacturer.py --source hasbro --output output/hasbro-catalog.json || echo 'Hasbro unavailable; no bypass attempted'
               python tools/import_manufacturer.py --source mcfarlane --output output/mcfarlane-catalog.json || echo 'McFarlane unavailable; no bypass attempted'
+              python tools/import_mephitsu.py --output output/mephitsu-catalog.json || echo 'Mephitsu unavailable; no bypass attempted'
               ;;
             funko) python tools/import_funko.py --url 'https://funko.com/all-funko-products/' --output output/funko-catalog.json ;;
             sideshow)
@@ -62,6 +64,7 @@ jobs:
             bbts) python tools/import_bbts.py --output output/bbts-catalog.json ;;
             hasbro) python tools/import_manufacturer.py --source hasbro --output output/hasbro-catalog.json ;;
             mcfarlane) python tools/import_manufacturer.py --source mcfarlane --output output/mcfarlane-catalog.json ;;
+            mephitsu) python tools/import_mephitsu.py --output output/mephitsu-catalog.json ;;
             *) exit 1 ;;
           esac
       - name: Check output
@@ -87,7 +90,7 @@ jobs:
           set -euo pipefail
           mkdir -p website
           cp index.html website/
-          for file in manifest.webmanifest sw.js icon.svg marvel-legends.json sideshow-catalog.json funko-catalog.json bbts-catalog.json hasbro-catalog.json mcfarlane-catalog.json; do
+          for file in manifest.webmanifest sw.js icon.svg marvel-legends.json sideshow-catalog.json funko-catalog.json bbts-catalog.json hasbro-catalog.json mcfarlane-catalog.json mephitsu-catalog.json; do
             if [ -f "$file" ]; then cp "$file" website/; fi
           done
           cp output/*.json website/
@@ -96,7 +99,7 @@ jobs:
           import json
           from pathlib import Path
           root=Path('website')
-          names={'funko':'funko-catalog.json','marvel-legends':'marvel-legends.json','sideshow':'sideshow-catalog.json','bbts':'bbts-catalog.json','hasbro':'hasbro-catalog.json','mcfarlane':'mcfarlane-catalog.json'}
+          names={'funko':'funko-catalog.json','marvel-legends':'marvel-legends.json','sideshow':'sideshow-catalog.json','bbts':'bbts-catalog.json','hasbro':'hasbro-catalog.json','mcfarlane':'mcfarlane-catalog.json','mephitsu':'mephitsu-catalog.json'}
           status={}
           for name,filename in names.items():
             if (root/filename).exists():
