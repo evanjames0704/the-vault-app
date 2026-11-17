@@ -1676,6 +1676,24 @@ async function search(){
    return found;
   }catch(e){notices.push('Sideshow catalog not loaded');return []}
  })());
+ // Official Funko catalog takes precedence over the historical community fallback.
+ requests.push((async()=>{
+  try{
+   if(!window.vaultOfficialFunkoCatalog){
+    const response=await fetch('./funko-catalog.json',{cache:'no-cache',signal:AbortSignal.timeout(16000)});
+    if(!response.ok)throw Error('Official Funko catalog not published');
+    const data=await response.json();
+    if(!data||data.schema!=='vault-funko-v1'||!Array.isArray(data.items))throw Error('Invalid official Funko catalog');
+    window.vaultOfficialFunkoCatalog=data.items;
+   }
+   const found=[];
+   for(const item of window.vaultOfficialFunkoCatalog){
+    const x={name:String(item.name||''),category:'Funko Pops',franchise:String(item.franchise||''),brand:'Funko',identifier:String(item.identifier||''),variant:String(item.variant||''),image:String(item.image||''),source:'Official Funko product catalog'};
+    if(matches(x)){found.push(x);if(found.length>=500)break}
+   }
+   return found;
+  }catch(e){notices.push('Official Funko catalog not loaded; historical catalog may still be available');return []}
+ })());
  // Public historical Funko dataset. Loaded once per browser session; never sent to Supabase.
  requests.push((async()=>{
   try{
