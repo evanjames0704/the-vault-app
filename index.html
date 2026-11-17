@@ -1857,61 +1857,40 @@ async function search(){
   const btn=document.createElement('button');btn.textContent='Add this collectible';btn.onclick=()=>choose(x);card.appendChild(btn);out.appendChild(card);
  });shown=Math.min(visible.length,shown+batch);loadMore.hidden=shown>=visible.length;loadMore.textContent='Show more ('+(visible.length-shown)+' remaining)';};
  const loadMore=document.createElement('button');loadMore.type='button';loadMore.className='vault-load-more';loadMore.onclick=renderBatch;out.after(loadMore);
- panel.onvaultfilter=category=>{
+ const fallbackSearches=new Map();
+ let filterRun=0;
+ panel.onvaultfilter=async category=>{
+  const run=++filterRun;
   visible=category==='All'?unique:unique.filter(x=>x.category===category);
   shown=0;out.replaceChildren();
-  $('v11state').textContent=(visible.length?visible.length+' matching collectibles':'No matches in this category')+
-    (notices.length?' · '+notices.join(' · '):'');
-  renderBatch();
+  const message=note=>{ $('v11state').textContent=note+(notices.length?' · '+notices.join(' · '):''); };
   if (!visible.length) {
-   const fallback=document.createElement('p');
-   const ebay=document.createElement('a');
-   const url=new URL('https://www.ebay.com/sch/i.html');
-   url.search=new URLSearchParams({_nkw:[q,category==='All'?'':category].filter(Boolean).join(' ')});
-   ebay.href=url.href;ebay.target='_blank';ebay.rel='noopener noreferrer';
-   ebay.textContent='Look up this item on eBay';
-   fallback.append(ebay);out.append(fallback);
+   message('Checking the eBay catalog…');
+   if (!fallbackSearches.has(category)) {
+    const params=new URLSearchParams({mode:'catalog',q:[q,category==='All'?'':category].filter(Boolean).join(' ').slice(0,100)});
+    fallbackSearches.set(category,fetch('/api/ebay/search?'+params,{signal:AbortSignal.timeout(8000)})
+      .then(async response=>{
+       if (!response.ok || !response.headers.get('content-type')?.includes('application/json')) return null;
+       const data=await response.json();
+       return Array.isArray(data.results)?data.results:[];
+      }).catch(()=>null));
+   }
+   const matches=await fallbackSearches.get(category);
+   if (token!==seq || run!==filterRun) return;
+   if (!matches) {
+    message('No local matches. The eBay catalog is unavailable. You can add the item manually.');
+    renderBatch();return;
+   }
+   visible=matches.filter(x=>typeof x.title==='string'&&/^\d{1,20}$/.test(x.epid))
+    .map(x=>({name:x.title,category:category==='All'?'Collectibles':category,identifier:'ePID '+x.epid,source:'eBay catalog'}));
   }
+  message(visible.length?visible.length+' matching collectibles':'No matches. You can add the item manually.');
+  renderBatch();
  };
- panel.onvaultfilter(panel.dataset.catalogCategory||'All');
+ await panel.onvaultfilter(panel.dataset.catalogCategory||'All');
 }
-// Verified public figure catalog discovery links. These are links, not unauthorized imports.
-const sourceBar=document.createElement('div');sourceBar.id='vaultFigureSources';sourceBar.hidden=true;sourceBar.style.cssText='margin:12px 0;padding:14px;border:1px solid #705b37;border-radius:12px;background:#211b13';
-const sourceTitle=document.createElement('strong');sourceTitle.textContent='Browse action-figure catalogs';sourceBar.appendChild(sourceTitle);
-const sourceNote=document.createElement('p');sourceNote.className='v11sub';sourceNote.textContent='Marvel Legends, McFarlane, Hot Toys and more. These open verified catalog websites; automatic import is not available yet.';sourceBar.appendChild(sourceNote);
-const sourceLinks=[['Marvel Legends','https://thetoydb.com/'],['McFarlane Toys','https://thetoydb.com/'],['Hot Toys','https://www.actionfigure411.com/marvel/'],['NECA','https://thetoydb.com/'],['Figure checklists','https://www.mephitsu.co.uk/collector-databases']];
-const sourceRow=document.createElement('div');sourceRow.style.cssText='display:flex;flex-wrap:wrap;gap:8px;margin-top:10px';
-sourceLinks.forEach(([name,url])=>{const a=document.createElement('a');a.href=url;a.target='_blank';a.rel='noopener noreferrer';a.textContent=name+' ↗';a.style.cssText='display:inline-block;padding:9px 11px;border:1px solid #856b40;border-radius:8px;color:#f4d18b;text-decoration:none;font-size:13px';sourceRow.appendChild(a)});
-sourceBar.appendChild(sourceRow);$('v11results').before(sourceBar);
-// Google Programmable Search Element: officially supported embedded results.
-// The engine ID (cx) is user-supplied; no API key or offsite navigation is used.
-const googlePanel=document.createElement('section');googlePanel.id='vaultGoogleDiscovery';googlePanel.hidden=true;
-googlePanel.style.cssText='margin:12px 0 18px;padding:16px;border:1px solid #92743f;border-radius:14px;background:#211a11';
-const heading=document.createElement('strong');heading.textContent='Google collectible search — inside THE VAULT';googlePanel.appendChild(heading);
-const desc=document.createElement('p');desc.className='v11sub';desc.textContent='Search Marvel Legends, Hot Toys, McFarlane, Funko and more without leaving the app. Google controls its results; product details are not imported automatically.';googlePanel.appendChild(desc);
-const setup=document.createElement('div');setup.style.cssText='display:flex;gap:8px;flex-wrap:wrap;margin:10px 0';
-const cxInput=document.createElement('input');cxInput.type='text';cxInput.placeholder='Google Programmable Search Engine ID';cxInput.setAttribute('aria-label','Google search engine ID');cxInput.style.cssText='flex:1;min-width:170px;padding:10px;background:#17120e;color:white;border:1px solid #8d744b;border-radius:8px';
-try{cxInput.value=localStorage.getItem('vault-google-cx')||''}catch(e){}
-const saveBtn=document.createElement('button');saveBtn.type='button';saveBtn.textContent='Connect search';saveBtn.style.cssText='padding:10px;border-radius:8px';
-setup.append(cxInput,saveBtn);googlePanel.appendChild(setup);
-const status=document.createElement('p');status.className='v11sub';status.textContent='One-time setup: create a free Programmable Search Engine at programmablesearchengine.google.com and enter its Search engine ID. Enable image search in its settings if you want photo results.';googlePanel.appendChild(status);
-const results=document.createElement('div');results.id='vaultEmbeddedGoogleResults';results.style.cssText='min-height:35px;margin-top:12px';googlePanel.appendChild(results);
-const googleManualBtn=document.createElement('button');googleManualBtn.type='button';googleManualBtn.textContent='＋ Add found collectible manually';googleManualBtn.style.cssText='padding:11px;border-radius:9px;margin-top:10px';googlePanel.appendChild(googleManualBtn);
-function googleQuery(){return ($('v11q')?.value||'').trim()}
-function runEmbeddedSearch(){const q=googleQuery();if(!q)return;const engine=window.google?.search?.cse?.element?.getElement('vaultCollectibles');if(engine&&typeof engine.execute==='function'){engine.execute(q+' collectible figure');status.textContent='Showing Google search results inside THE VAULT. Verify the exact release before adding.';}else if(cxInput.value.trim()){status.textContent='Google search is loading. Try Search again in a moment.';}}
-function loadGoogle(){const cx=cxInput.value.trim();if(!/^[a-zA-Z0-9:_-]{6,100}$/.test(cx)){status.textContent='Enter a valid Search engine ID from Google Programmable Search Engine.';return;}
-try{localStorage.setItem('vault-google-cx',cx)}catch(e){}
-results.replaceChildren();const el=document.createElement('div');el.className='gcse-searchresults-only';el.dataset.gname='vaultCollectibles';el.dataset.cx=cx;results.appendChild(el);
-if(document.getElementById('vaultGoogleScript')){status.textContent='Search engine ID saved. Reload THE VAULT to activate the new engine.';return;}
-window.__gcse={parsetags:'explicit',callback:()=>{try{window.google.search.cse.element.render({div:el,tag:'searchresults-only',gname:'vaultCollectibles'});status.textContent='Google search connected. Enter a collectible above and tap Search.';runEmbeddedSearch()}catch(e){status.textContent='Could not initialize embedded Google results. Check the search engine configuration.';}}};
-const script=document.createElement('script');script.id='vaultGoogleScript';script.async=true;script.src='https://cse.google.com/cse.js?cx='+encodeURIComponent(cx);script.onerror=()=>{status.textContent='Google search script could not load. Check network or browser blocking.'};document.head.appendChild(script);
-status.textContent='Connecting embedded Google search…';}
-saveBtn.onclick=loadGoogle;
-googleManualBtn.onclick=()=>{const modal=$('modal');if(modal){modal.classList.remove('hidden');modal.style.display='flex';const name=$('name');if(name){name.value=googleQuery();name.dispatchEvent(new Event('change',{bubbles:true}));name.focus()}}};
-$('v11results').before(googlePanel);
-$('v11go').onclick=()=>{search();runEmbeddedSearch()};
-$('v11q').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();search();runEmbeddedSearch()}});
-if(cxInput.value.trim())loadGoogle();
+$('v11go').onclick=search;
+$('v11q').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();search();}});
 })();
 </script>
 
@@ -2065,86 +2044,6 @@ try{const raw=sessionStorage.getItem(KEY),data=raw&&JSON.parse(raw);if(data?.fie
 })();
 </script>
 
-<style id="vault-ebay-research-style">#vaultEbayResearch{border:1px solid #735b33;background:#19150f;border-radius:18px;padding:17px;margin:16px 0;color:#e9d5ab}#vaultEbayResearch h3{margin:0 0 8px;color:#f4d69b}#vaultEbayResearch input{width:100%;box-sizing:border-box;padding:12px;background:#0d0d0c;border:1px solid #705d3b;border-radius:10px;color:#fff;margin:10px 0}#vaultEbayResearch a{display:inline-block;padding:11px 15px;border-radius:10px;background:#d3ac63;color:#191208;text-decoration:none;font-weight:750;margin:4px 7px 4px 0}#vaultEbayResearch small{display:block;line-height:1.5;color:#c2b7a4;margin-top:8px}</style>
-<script id="vault-ebay-research-script">
-(() => {
-  'use strict';
-  const screen = document.querySelector('[data-v13screen="discover"]');
-  if (!screen) return;
-  const card = document.createElement('section');
-  card.id = 'vaultEbayResearch';
-  card.innerHTML = `<h3>eBay collectible pricing</h3>
-    <form><input type="search" aria-label="Collectible name or barcode" placeholder="Collectible name or barcode" maxlength="100" required minlength="2">
-    <button class="v13-quiet" type="submit" value="catalog">Find exact edition</button>
-    <button class="v13-quiet" type="submit" value="listings">Find asking prices</button></form>
-    <small role="status">US Buy It Now asking prices exclude shipping and tax.</small>
-    <ul></ul><a target="_blank" rel="noopener noreferrer">View sold listings on eBay</a>`;
-  screen.appendChild(card);
-  const form = card.querySelector('form'), input = form.querySelector('input');
-  const status = card.querySelector('[role="status"]'), list = card.querySelector('ul');
-  const sold = card.querySelector('a');
-  const currency = new Intl.NumberFormat('en-US', {style:'currency', currency:'USD'});
-  let currentSearch;
-  function updateSoldLink(query) {
-    const url = new URL('https://www.ebay.com/sch/i.html');
-    url.search = new URLSearchParams({_nkw: query || 'collectibles', LH_Sold: '1', LH_Complete: '1'});
-    sold.href = url.href;
-  }
-  async function search(mode, query, epid = '') {
-    currentSearch?.abort();
-    const controller = new AbortController();
-    currentSearch = controller;
-    list.replaceChildren();
-    status.textContent = 'Searching eBay…';
-    updateSoldLink(query);
-    try {
-      const params = new URLSearchParams({mode, q: query.slice(0, 100)});
-      if (epid) params.set('epid', epid);
-      const response = await fetch('/api/ebay/search?' + params, {
-        signal: AbortSignal.any([controller.signal, AbortSignal.timeout(16000)]),
-        cache: 'no-store',
-      });
-      if (!response.headers.get('Content-Type')?.includes('application/json')) {
-        throw Error('Live eBay pricing has not been connected to this deployment.');
-      }
-      const data = await response.json();
-      if (!response.ok) throw Error(data.error || 'eBay search is unavailable.');
-      if (controller.signal.aborted) return;
-      status.textContent = mode === 'catalog'
-        ? (data.results.length ? 'Choose an edition to see its asking prices.' : 'No matching eBay catalog editions.')
-        : (data.results.length ? 'US Buy It Now asking prices · excludes shipping and tax · checked ' +
-          new Date(data.observedAt).toLocaleTimeString() : 'No matching Buy It Now prices.');
-      for (const result of data.results) {
-        const row = document.createElement('li');
-        if (mode === 'catalog') {
-          const button = document.createElement('button');
-          button.type = 'button';
-          button.className = 'v13-quiet';
-          button.textContent = result.title;
-          button.onclick = () => search('listings', result.title, result.epid);
-          row.append(button);
-        } else {
-          const link = document.createElement('a');
-          link.href = result.url;
-          link.target = '_blank';
-          link.rel = 'noopener noreferrer';
-          link.textContent = result.title;
-          row.append(currency.format(result.price), result.condition ? ' · ' + result.condition + ' ' : ' ', link);
-        }
-        list.append(row);
-      }
-    } catch (error) {
-      if (!controller.signal.aborted) status.textContent = error.name === 'TimeoutError' ? 'The eBay search timed out.' : error.message;
-    }
-  }
-  form.addEventListener('submit', event => {
-    event.preventDefault();
-    search(event.submitter?.value || 'listings', input.value.trim());
-  });
-  input.addEventListener('input', () => updateSoldLink(input.value.trim()));
-  updateSoldLink('');
-})();
-</script>
 <script id="vault-auto-pricing">
 (() => {
   const status = document.getElementById('v13EbayCoverage');
