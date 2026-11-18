@@ -5,6 +5,7 @@ from collections import defaultdict
 from pathlib import Path
 
 SOURCES = (
+    ("big-toes-catalog", "Big Toes Collectibles", ""),
     ("marvel-legends", "Legendsverse original retail", "Marvel Legends"),
     ("funko-catalog", "Official Funko product catalog", "Funko"),
     ("bbts-catalog", "BigBadToyStore catalog", "BigBadToyStore"),
