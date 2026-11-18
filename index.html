@@ -1665,10 +1665,30 @@ for (const sport of ['Baseball','Basketball','Football','Hockey','Soccer','Racin
 $('v11q').after(sportSelect);
 sportSelect.addEventListener('change',()=>{if($('v11q').value.trim().length>=2)search();});
 
+let cardCollector2Catalog;
+async function findCardCollector2(query,sport='') {
+ const words=String(query).normalize('NFKD').replace(/\p{M}/gu,'').toLowerCase().match(/[a-z0-9]+/g)||[];
+ if(!words.length)return [];
+ if(!cardCollector2Catalog){
+  cardCollector2Catalog=fetch('./cardcollector2-catalog.json',{signal:AbortSignal.timeout(12000)})
+   .then(async response=>{
+    if(!response.ok)throw Error('CardCollector2 catalog unavailable');
+    const data=await response.json();
+    if(data.schema!=='vault-cardcollector2-v1'||!Array.isArray(data.items))throw Error('Invalid CardCollector2 catalog');
+    return data.items;
+   }).catch(error=>{cardCollector2Catalog=null;throw error;});
+ }
+ const rows=await cardCollector2Catalog;
+ return rows.filter(row=>{
+  const title=[row.name,row.sport,row.variant,row.category].join(' ').normalize('NFKD').replace(/\p{M}/gu,'').toLowerCase();
+  return (!sport||row.sport.toLowerCase()===sport.toLowerCase())&&words.every(word=>title.includes(word));
+ }).map(row=>({...row,source:'CardCollector2'}));
+}
+
 async function searchPlayer(name,sport,token) {
  const out=$('v11results'),status=$('v11state');
  const more=document.createElement('button');more.type='button';more.className='vault-load-more';
- let next=null,shown=0;
+ let next=null,shown=0,retailCount=0;
  const seen=new Set();
  async function load() {
   more.disabled=true;
@@ -1703,14 +1723,27 @@ async function searchPlayer(name,sport,token) {
    next=page.next;
    more.hidden=!next;
    more.textContent='Show more cards';
-   status.textContent=shown?shown+' cards loaded'+(next?' · More available':''):'No cards found. Try the player’s full name and check the sport.';
+   status.textContent=shown||retailCount?(retailCount?retailCount+' CardCollector2 matches · ':'')+shown+' TCDB cards loaded'+(next?' · More available':''):'No cards found. Try the player’s full name and check the sport.';
   } catch {
-   if(token===seq)status.textContent='TCDB player search is temporarily unavailable.';
+   if(token===seq)status.textContent=(retailCount?retailCount+' CardCollector2 matches shown · ':'')+'TCDB player search is temporarily unavailable.';
    more.hidden=false;
    more.textContent='Try again';
   } finally {more.disabled=false;}
  }
- more.onclick=load;out.after(more);
+ more.onclick=load;more.hidden=true;out.after(more);
+ status.textContent='Looking up player cards…';
+ const retailer=await findCardCollector2(name,sport).catch(()=>[]);
+ if(token!==seq)return;
+ retailCount=retailer.length;
+ for(const item of retailer){
+  const row=document.createElement('div');row.className='v11item';
+  const title=document.createElement('strong');title.textContent=item.name;
+  const label=document.createElement('div');label.className='v11sub';
+  label.textContent=item.source+' · '+(item.retailPrice>0?'Listed retail: $'+item.retailPrice.toFixed(2):'Category estimate: $'+window.vaultCategoryEstimate(item.category).toFixed(2))+(item.available?'':' · Sold out');
+  const add=document.createElement('button');add.type='button';add.textContent='Add card';add.onclick=()=>choose(item);
+  if(item.image){const img=document.createElement('img');img.src=item.image;img.alt=item.name;img.loading='lazy';row.append(img);}
+  row.append(title,label,add);out.append(row);
+ }
  await load();
 }
 
@@ -1748,6 +1781,7 @@ async function search(){
  const matches=x=>!tcdbPath&&terms.length&&terms.every(term=>normalize([x.name,x.franchise,x.variant,x.identifier,x.brand,x.category,x.series,x.number,x.year].join(' ')).includes(term));
  try{const local=JSON.parse(localStorage.getItem('vault-v103-catalog')||'[]');if(Array.isArray(local))for(const x of local){const y={name:x.name,category:x.category,franchise:x.franchise,brand:x.brand,identifier:x.number,variant:x.variant,image:x.imageUrl,source:'Your imported figure catalog'};if(matches(y))results.push(y)}}catch{}
  const requests=[];
+ if(!tcdbPath)requests.push(findCardCollector2(q).catch(()=>{notices.push('CardCollector2 catalog unavailable');return []}));
  // Licensed Marvel Legends catalog: locally bundled, no paid API.
  requests.push((async()=>{
   try{
@@ -1940,7 +1974,7 @@ async function search(){
   if(x.image&&/^(?:https:\/\/[^\s"'<>]+|catalog-images\/[a-z0-9_.-]+)$/i.test(x.image)){const img=document.createElement('img');img.src=x.image;img.alt=x.name+' product photo';img.loading='lazy';img.decoding='async';img.referrerPolicy='no-referrer';img.onerror=()=>{img.remove();const fallback=document.createElement('div');fallback.style.cssText='height:190px;display:flex;align-items:center;justify-content:center;background:#352b20;color:#cdbd9d;text-align:center;border-radius:8px;padding:12px';fallback.textContent='Photo unavailable from catalog';card.prepend(fallback)};card.appendChild(img)}
   if(!card.querySelector('img')){const fallback=document.createElement('div');fallback.className='vault-photo-missing';fallback.textContent='Photo not available';card.appendChild(fallback)}
   const title=document.createElement('strong');title.textContent=x.name;card.appendChild(title);
-  const desc=document.createElement('div');desc.className='v11sub';desc.textContent=[x.category,x.brand,x.series,x.number?'#'+x.number:'',x.variant,x.source].filter(Boolean).join(' · ');card.appendChild(desc);
+  const desc=document.createElement('div');desc.className='v11sub';desc.textContent=[x.category,x.brand,x.series,x.number?'#'+x.number:'',x.variant,x.source,x.available===false?'Sold out':''].filter(Boolean).join(' · ');card.appendChild(desc);
   const price=document.createElement('div');price.className='v11sub';price.textContent=Number.isFinite(x.retailPrice)&&x.retailPrice>0?'Listed retail: $'+x.retailPrice.toFixed(2):x.source==='TCDB'&&Number.isFinite(x.marketPrice)&&x.marketPrice>0?'TCDB reported median: $'+x.marketPrice.toFixed(2):Number.isFinite(x.askingPrice)&&x.askingPrice>0?'eBay asking price: $'+x.askingPrice.toFixed(2):'Category estimate: $'+window.vaultCategoryEstimate(x.category).toFixed(2);card.appendChild(price);
   const btn=document.createElement('button');btn.textContent='Add this collectible';btn.onclick=()=>choose(x);card.appendChild(btn);out.appendChild(card);
  });shown=Math.min(visible.length,shown+batch);loadMore.hidden=shown>=visible.length;loadMore.textContent='Show more ('+(visible.length-shown)+' remaining)';};
