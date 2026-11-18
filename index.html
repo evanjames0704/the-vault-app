@@ -60,7 +60,7 @@
  <div id="medianResult" class="smart-note" style="margin-top:10px" role="status"></div>
  </div>
 </section>
-<section class="panel"><div class="top"><h2 style="margin:0">Collection Library</h2><span id="results" class="muted" style="font-size:12px"></span></div><div class="category-counts" id="counts"></div><button class="btn secondary" type="button" id="viewAllCollection">View all A–Z</button><div class="toolbar" style="margin-top:15px"><input id="search" placeholder="Search names, franchises, notes..."><select id="categoryFilter" aria-label="Collectible type"><option value="">All collectible types</option></select><select id="characterFilter" aria-label="Character, movie, or game"><option value="">All characters, movies &amp; games</option></select><select id="sort" aria-label="Sort collection"><option value="name">Name A–Z</option><option value="recent">Recently added</option><option value="high">Highest value</option><option value="low">Lowest value</option></select><select id="statusFilter"><option value="">Owned + Wishlist</option><option value="Owned">Owned</option><option value="Wishlist">Wishlist</option></select></div><div class="items" id="items"></div><div id="empty" class="empty">Your vault is empty. Add your first collectible to get started.</div></section><section class="panel"><div class="top"><h2>Collection Intelligence</h2><span class="status" id="intelTag">FREE INSIGHTS</span></div><div class="insight-grid" id="insights"></div><p class="note" id="insightNote">Values are estimates you provide, not live market prices.</p></section><section class="panel pro-panel"><div class="top"><h2 style="margin:0">✦ THE VAULT PRO</h2><span class="status" id="planStatus">FREE PLAN</span></div><p class="pro-feature">Free collectors can save up to <b>250 records</b>, with photos, wishlist, search, and backups. Pro is planned to include unlimited records, CSV reports, and advanced collection intelligence.</p></section><section class="panel"><h2>Data & Backups</h2><div class="actions"><button class="btn secondary" id="export">Export Backup</button><button class="btn secondary" id="import">Import Backup</button><button class="btn secondary" id="csv">Export CSV (Pro)</button><input id="importFile" type="file" accept="application/json,.json" hidden></div><details id="vaultDeveloperSettings" class="vault-admin-settings"><summary>Developer settings (local testing only)</summary><p class="note">These settings are for development and are not an authenticated administrator account. They must be removed or secured before a public release.</p><label for="vaultServiceUrl">Merchandise search service URL</label><input id="vaultServiceUrl" type="url" autocomplete="off" placeholder="https://your-worker.workers.dev" style="width:100%;margin-top:8px"><div class="actions" style="margin-top:10px"><button type="button" class="btn secondary" id="vaultTestConnection">Test connection</button></div><div id="vaultAdminStatus" class="note" role="status">Not checked yet.</div></details><p class="note">Stored locally in this browser on this device. Clearing Safari website data, using private browsing, or changing devices may erase your vault. Export backups regularly and save them in Files or iCloud Drive. Photos make backups larger. This preview stores collection data locally per browser and website address; it does not synchronize devices. Export a backup before moving to the hosted version. Catalog searches require internet.</p></section><section class="v54-box" id="v54Cloud"><h2>✦ Private Cloud Account <span class="status">BETA</span></h2><p class="v54-note">Optional email account and encrypted-transport cloud snapshot. Your collection stays local until you explicitly upload it. Safe Sync is optional; Smart Merge requires explicit review and approval. Export a backup before downloading a cloud snapshot.</p><details><summary>Connect cloud service (setup required)</summary></details><div class="v54-grid"><label>Email<input id="v54Email" type="email" autocomplete="email" placeholder="you@example.com"></label><label>Password<input id="v54Pass" type="password" autocomplete="current-password" placeholder="At least 12 characters"></label></div><div class="v54-actions"><button class="btn secondary" type="button" id="v54SignUp">Create account</button><button class="btn secondary" type="button" id="v54SignIn">Sign in</button><button class="btn secondary" type="button" id="v54Recover">Forgot password?</button><button class="btn secondary" type="button" id="v54SignOut">Sign out</button></div><p id="v54Status" class="v54-note" role="status" aria-live="polite">Not signed in. Your collection remains on this device.</p><div class="v54-actions"><button class="btn" type="button" id="v54Upload">Upload collection snapshot</button><button class="btn secondary" type="button" id="v54Download">Download cloud snapshot as backup</button></div><div class="v54-box" style="margin-top:14px;border-color:#a17b38"><h3 style="margin:0">✦ Automatic Safe Sync & Smart Merge (v5.9 beta)</h3><p class="v54-note">Opt-in synchronization with revision checks. Never automatically overwrites an existing collection on first connection. Keep a separate JSON backup. After both copies match, opt in to automatically exchange changes while this page is open. Conflicting edits pause sync for review; no background sync when the page is closed.</p><div class="v54-actions"><button class="btn secondary" id="v55Inspect" type="button">Compare device and cloud</button><button class="btn secondary" id="v55Start" type="button">Enable safe sync</button><button class="btn secondary" id="v55Stop" type="button">Pause sync</button></div><div class="v54-actions"><button class="btn secondary" type="button" id="v56Review">Review smart merge</button></div><div id="v56Panel" hidden style="margin-top:14px;padding:14px;border:1px solid #755a2c;border-radius:12px"></div><p id="v55Status" class="v54-note" role="status" aria-live="polite">Safe sync is paused. Sign in, compare and reconcile first. Enable separately on each device.</p></div><p class="v54-note">Cloud snapshots are stored in your Supabase project, accessible only to the signed-in account under database row-level security. Supabase administrators may access database contents. Do not upload highly sensitive notes. Never enter a service_role or secret key in this page.</p></section><div class="foot">THE VAULT • VERSION 8.1 SMART GALLERIES BETA • PRIVATE BY DEFAULT</div></main><div class="modal hidden" id="modal"><div class="dialog"><div class="dialog-head"><h2 id="formTitle" style="margin:0">Add collectible</h2><button class="close" id="close" aria-label="Close">×</button></div><div id="vaultPhotoPreview" aria-live="polite" style="display:none;margin:10px 0 16px;align-items:center;gap:14px;padding:10px;border:1px solid #6c522e;border-radius:12px"><img id="vaultPreviewImage" alt="Collectible artwork preview" style="width:82px;height:106px;object-fit:contain;background:#0b0a08;border-radius:8px"><div><strong>Catalog artwork</strong><p class="muted" style="font-size:12px;margin:6px 0">Included when available. You can replace it with your own photo.</p></div></div><form id="form"><p id="vaultCatalogPriceNote" class="muted" hidden></p><div class="fields"><div class="full"><label for="name">Item name *</label><input id="name" required maxlength="150" placeholder="e.g. Green Lantern action figure"></div><div><label for="category">Category *</label><select id="category" required></select></div><div class="full" id="specialtyFields" style="display:none;border:1px solid #66502b;border-radius:12px;padding:12px;background:#1d1913"><strong class="gold" id="specialtyTitle">Specialty details</strong><p class="note">Optional collector details, included in backups.</p><div class="fields" id="specialtyInputs"></div></div><div><label for="status">Status</label><select id="status"><option>Owned</option><option>Wishlist</option></select></div><div><label for="franchise">Franchise / universe</label><input id="franchise" maxlength="100" placeholder="DC Comics, Marvel..."></div><div><label for="collectionCharacters">Characters</label><input id="collectionCharacters" maxlength="240" placeholder="Daredevil, Punisher"></div><div><label for="collectionMovie">Movie or TV title</label><input id="collectionMovie" maxlength="120"></div><div><label for="collectionGame">Game title</label><input id="collectionGame" maxlength="120"></div><div><label for="brand">Brand / manufacturer</label><input id="brand" maxlength="100" placeholder="McFarlane, Funko..."></div><div><label for="identifier" id="identifierLabel">Set / issue / item number</label><input id="identifier" maxlength="100"></div><div><label for="variant">Edition / variant / platform</label><input id="variant" maxlength="120"></div><div><label for="condition">Condition</label><select id="condition"><option>New / Sealed</option><option>Like New</option><option>Good</option><option>Fair</option><option>Poor</option><option>Not graded</option><option>Near Mint</option><option>Lightly Played</option><option>Moderately Played</option><option>Heavily Played</option><option>Damaged</option><option>Graded / Slabbed</option></select></div><div><label for="location">Storage / display location</label><input id="location" maxlength="100" placeholder="Bedroom shelf 1"></div><input id="purchase" type="hidden"><div id="vaultManualEstimate" hidden><label for="estimate">Your estimate per item ($)</label><input id="estimate" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0.00"></div><div><label for="date">Purchase date</label><input id="date" type="date"></div><div><label for="quantity">Quantity</label><input id="quantity" type="number" min="1" max="9999" step="1" value="1"></div><div class="full"><label for="photo">Photo (optional)</label><input id="photo" type="file" accept="image/*"><div class="note">Photos are compressed on your phone to reduce storage use.</div></div><div class="full"><label for="notes">Notes / authenticity / grading</label><textarea id="notes" rows="3" maxlength="2000" placeholder="Signature certificate, comic grade, missing pieces..."></textarea></div></div><div class="actions" style="margin-top:20px"><button class="btn" type="submit">Save Collectible</button><button class="btn secondary" type="button" id="cancel">Cancel</button></div></form></div></div><div id="toast" role="status"></div>
+<section class="panel"><div class="top"><h2 style="margin:0">Collection Library</h2><span id="results" class="muted" style="font-size:12px"></span></div><div class="category-counts" id="counts"></div><button class="btn secondary" type="button" id="viewAllCollection">View all A–Z</button><div class="toolbar" style="margin-top:15px"><input id="search" placeholder="Search names, franchises, notes..."><select id="categoryFilter" aria-label="Collectible type"><option value="">All collectible types</option></select><select id="characterFilter" aria-label="Character, movie, or game"><option value="">All characters, movies &amp; games</option></select><select id="sort" aria-label="Sort collection"><option value="name">Name A–Z</option><option value="recent">Recently added</option><option value="high">Highest value</option><option value="low">Lowest value</option></select><select id="statusFilter"><option value="">Owned + Wishlist</option><option value="Owned">Owned</option><option value="Wishlist">Wishlist</option></select></div><div class="items" id="items"></div><div id="empty" class="empty">Your vault is empty. Add your first collectible to get started.</div></section><section class="panel"><div class="top"><h2>Collection Intelligence</h2><span class="status" id="intelTag">FREE INSIGHTS</span></div><div class="insight-grid" id="insights"></div><p class="note" id="insightNote">Values are estimates you provide, not live market prices.</p></section><section class="panel pro-panel"><div class="top"><h2 style="margin:0">✦ THE VAULT PRO</h2><span class="status" id="planStatus">FREE PLAN</span></div><p class="pro-feature">Free collectors can save up to <b>250 records</b>, with photos, wishlist, search, and backups. Pro is planned to include unlimited records, CSV reports, and advanced collection intelligence.</p></section><section class="panel"><h2>Data & Backups</h2><div class="actions"><button class="btn secondary" id="export">Export Backup</button><button class="btn secondary" id="import">Import Backup</button><button class="btn secondary" id="csv">Export CSV (Pro)</button><input id="importFile" type="file" accept="application/json,.json" hidden></div><p class="note">Stored locally in this browser on this device. Clearing Safari website data, using private browsing, or changing devices may erase your vault. Export backups regularly and save them in Files or iCloud Drive. Photos make backups larger. This preview stores collection data locally per browser and website address; it does not synchronize devices. Export a backup before moving to the hosted version. Catalog searches require internet.</p></section><section class="v54-box" id="v54Cloud"><h2>✦ Private Cloud Account <span class="status">BETA</span></h2><p class="v54-note">Optional email account and encrypted-transport cloud snapshot. Your collection stays local until you explicitly upload it. Safe Sync is optional; Smart Merge requires explicit review and approval. Export a backup before downloading a cloud snapshot.</p><details><summary>Connect cloud service (setup required)</summary></details><div class="v54-grid"><label>Email<input id="v54Email" type="email" autocomplete="email" placeholder="you@example.com"></label><label>Password<input id="v54Pass" type="password" autocomplete="current-password" placeholder="At least 12 characters"></label></div><div class="v54-actions"><button class="btn secondary" type="button" id="v54SignUp">Create account</button><button class="btn secondary" type="button" id="v54SignIn">Sign in</button><button class="btn secondary" type="button" id="v54Recover">Forgot password?</button><button class="btn secondary" type="button" id="v54SignOut">Sign out</button></div><p id="v54Status" class="v54-note" role="status" aria-live="polite">Not signed in. Your collection remains on this device.</p><div class="v54-actions"><button class="btn" type="button" id="v54Upload">Upload collection snapshot</button><button class="btn secondary" type="button" id="v54Download">Download cloud snapshot as backup</button></div><div class="v54-box" style="margin-top:14px;border-color:#a17b38"><h3 style="margin:0">✦ Automatic Safe Sync & Smart Merge (v5.9 beta)</h3><p class="v54-note">Opt-in synchronization with revision checks. Never automatically overwrites an existing collection on first connection. Keep a separate JSON backup. After both copies match, opt in to automatically exchange changes while this page is open. Conflicting edits pause sync for review; no background sync when the page is closed.</p><div class="v54-actions"><button class="btn secondary" id="v55Inspect" type="button">Compare device and cloud</button><button class="btn secondary" id="v55Start" type="button">Enable safe sync</button><button class="btn secondary" id="v55Stop" type="button">Pause sync</button></div><div class="v54-actions"><button class="btn secondary" type="button" id="v56Review">Review smart merge</button></div><div id="v56Panel" hidden style="margin-top:14px;padding:14px;border:1px solid #755a2c;border-radius:12px"></div><p id="v55Status" class="v54-note" role="status" aria-live="polite">Safe sync is paused. Sign in, compare and reconcile first. Enable separately on each device.</p></div><p class="v54-note">Cloud snapshots are stored in your Supabase project, accessible only to the signed-in account under database row-level security. Supabase administrators may access database contents. Do not upload highly sensitive notes. Never enter a service_role or secret key in this page.</p></section><div class="foot">THE VAULT • VERSION 8.1 SMART GALLERIES BETA • PRIVATE BY DEFAULT</div></main><div class="modal hidden" id="modal"><div class="dialog"><div class="dialog-head"><h2 id="formTitle" style="margin:0">Add collectible</h2><button class="close" id="close" aria-label="Close">×</button></div><div id="vaultPhotoPreview" aria-live="polite" style="display:none;margin:10px 0 16px;align-items:center;gap:14px;padding:10px;border:1px solid #6c522e;border-radius:12px"><img id="vaultPreviewImage" alt="Collectible artwork preview" style="width:82px;height:106px;object-fit:contain;background:#0b0a08;border-radius:8px"><div><strong>Catalog artwork</strong><p class="muted" style="font-size:12px;margin:6px 0">Included when available. You can replace it with your own photo.</p></div></div><form id="form"><p id="vaultCatalogPriceNote" class="muted" hidden></p><div class="fields"><div class="full"><label for="name">Item name *</label><input id="name" required maxlength="150" placeholder="e.g. Green Lantern action figure"></div><div><label for="category">Category *</label><select id="category" required></select></div><div class="full" id="specialtyFields" style="display:none;border:1px solid #66502b;border-radius:12px;padding:12px;background:#1d1913"><strong class="gold" id="specialtyTitle">Specialty details</strong><p class="note">Optional collector details, included in backups.</p><div class="fields" id="specialtyInputs"></div></div><div><label for="status">Status</label><select id="status"><option>Owned</option><option>Wishlist</option></select></div><div><label for="franchise">Franchise / universe</label><input id="franchise" maxlength="100" placeholder="DC Comics, Marvel..."></div><div><label for="collectionCharacters">Characters</label><input id="collectionCharacters" maxlength="240" placeholder="Daredevil, Punisher"></div><div><label for="collectionMovie">Movie or TV title</label><input id="collectionMovie" maxlength="120"></div><div><label for="collectionGame">Game title</label><input id="collectionGame" maxlength="120"></div><div><label for="brand">Brand / manufacturer</label><input id="brand" maxlength="100" placeholder="McFarlane, Funko..."></div><div><label for="identifier" id="identifierLabel">Set / issue / item number</label><input id="identifier" maxlength="100"></div><div><label for="variant">Edition / variant / platform</label><input id="variant" maxlength="120"></div><div><label for="condition">Condition</label><select id="condition"><option>New / Sealed</option><option>Like New</option><option>Good</option><option>Fair</option><option>Poor</option><option>Not graded</option><option>Near Mint</option><option>Lightly Played</option><option>Moderately Played</option><option>Heavily Played</option><option>Damaged</option><option>Graded / Slabbed</option></select></div><div><label for="location">Storage / display location</label><input id="location" maxlength="100" placeholder="Bedroom shelf 1"></div><input id="purchase" type="hidden"><div id="vaultManualEstimate" hidden><label for="estimate">Your estimate per item ($)</label><input id="estimate" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0.00"></div><div><label for="date">Purchase date</label><input id="date" type="date"></div><div><label for="quantity">Quantity</label><input id="quantity" type="number" min="1" max="9999" step="1" value="1"></div><div class="full"><label for="photo">Photo (optional)</label><input id="photo" type="file" accept="image/*"><div class="note">Photos are compressed on your phone to reduce storage use.</div></div><div class="full"><label for="notes">Notes / authenticity / grading</label><textarea id="notes" rows="3" maxlength="2000" placeholder="Signature certificate, comic grade, missing pieces..."></textarea></div></div><div class="actions" style="margin-top:20px"><button class="btn" type="submit">Save Collectible</button><button class="btn secondary" type="button" id="cancel">Cancel</button></div></form></div></div><div id="toast" role="status"></div>
 <style>
 #addChooser{position:fixed;inset:0;background:#000c;z-index:1000;display:none;align-items:center;justify-content:center;padding:16px}
 #addChooser.active{display:flex}
@@ -79,7 +79,7 @@
  <div class="top chooser-sticky"><h2 id="chooserTitle">✦ Add to THE VAULT</h2><button class="btn secondary" id="chooserClose" aria-label="Close">✕</button></div>
  <p class="smart-note">Find collectibles, review available catalog artwork, and add items to your private collection. More merchandise catalogs are coming soon.</p>
  <label for="chooserType">What are you collecting?</label><select id="chooserType"><option value="all">All collectibles</option><option value="pokemon">Pokémon cards</option><option value="sports">Sports cards</option><option value="hottoys">Hot Toys</option><option value="funko">Funko Pops</option><option value="othercards">Other trading cards</option><option value="figures">Action figures & Funko</option><option value="lego">LEGO</option><option value="comics">Comics</option><option value="games">Video games</option><option value="other">Other collectibles</option></select><label for="chooserQuery" style="margin-top:12px">Find a collectible</label><div class="query-wrap"><input id="chooserQuery" placeholder="Search name, set, player, series or barcode"><button type="button" id="chooserClear" aria-label="Clear search" title="Clear search">×</button></div>
- <div id="vaultConnectionStatus" class="smart-note" role="status" style="margin:8px 0 12px">Checking available catalogs…</div>
+ <div id="vaultConnectionStatus" class="smart-note" role="status" style="margin:8px 0 12px">Search available catalog records.</div>
  <div class="chooser-actions"><button class="btn" id="chooserSearch">Search Collectibles</button><button class="btn secondary" id="chooserManual">Add Manually</button></div>
  <div id="chooserResults" aria-live="polite"></div><div id="chooserCards" class="tcg-grid" aria-live="polite"></div>
  <div id="chooserSources" class="source-links"></div>
@@ -119,7 +119,7 @@ window.vaultMarvelLegendsQuote = (() => {
 })();
 </script>
 <script>
-(()=>{'use strict';const KEY='the-vault-v1';const categories=['Action figures','Funko Pops','Hot Toys','Sports cards','Comic books','LEGO','Video games','Movie memorabilia','Autographs','Trading cards','Statues and premium collectibles','Other collectibles','Books'];const emojis=['🦸','🎭','🦾','🏆','📚','🧱','🎮','🎬','✍️','🃏'];let data=[];let editing=null;let existingPhoto='';let pendingPricing=null;let pendingCatalogImage='';const $=id=>document.getElementById(id);const money=n=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:2}).format(n||0);const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));function toast(s){$('toast').textContent=s;$('toast').style.display='block';setTimeout(()=>$('toast').style.display='none',2800)}function load(){try{const a=JSON.parse(localStorage.getItem(KEY)||'[]');data=Array.isArray(a)?a:[]}catch(e){data=[];toast('Unable to read saved collection')}}function save(){try{localStorage.setItem(KEY,JSON.stringify(data));window.dispatchEvent(new Event('vault:collection-updated'));return true}catch(e){alert('Device storage is full or unavailable. Export a backup and try smaller photos. Your latest change was not saved.');return false}}function render(){const testIds=new Set(JSON.parse(localStorage.getItem('vault-test-item-ids')||'[]'));const owned=data.filter(x=>x.status==='Owned'&&!testIds.has(String(x.id)));const total=owned.reduce((a,x)=>a+Number(x.quantity||1),0),cost=owned.reduce((a,x)=>a+Number(x.purchase||0)*Number(x.quantity||1),0),val=owned.reduce((a,x)=>a+Number(x.estimate||0)*Number(x.quantity||1),0);$('total').textContent=total;$('cost').textContent=money(cost);$('value').textContent=money(val);$('gain').textContent=(val-cost>=0?'+':'')+money(val-cost);$('gain').style.color=val-cost>=0?'#9fdbad':'#f19d9d';$('counts').innerHTML=categories.map((c,i)=>`<span class="pill">${emojis[i]} ${esc(c)} · ${owned.filter(x=>x.category===c).reduce((a,x)=>a+Number(x.quantity||1),0)}</span>`).join('');const q=$('search').value.trim().toLowerCase(),cat=$('categoryFilter').value,status=$('statusFilter').value;const character=$('characterFilter');const selected=character.value;const grouping=window.vaultCollectionGroups;const groupsByItem=new Map(data.map(item=>[item,grouping?.(item)||[]]));const options=new Map();for(const groups of groupsByItem.values())for(const {type,label,key} of groups){if(!options.has(type))options.set(type,new Map());options.get(type).set(key,label)}character.replaceChildren(new Option('All characters, movies & games',''));for(const [type,label] of [['character','Characters'],['movie','Movies & TV'],['game','Games']]){const entries=options.get(type);if(!entries?.size)continue;const optgroup=document.createElement('optgroup');optgroup.label=label;for(const [key,name] of [...entries].sort((a,b)=>a[1].localeCompare(b[1])))optgroup.append(new Option(name,key));character.append(optgroup)}character.value=[...character.options].some(option=>option.value===selected)?selected:'';const filtered=data.filter(x=>(!cat||x.category===cat)&&(!character.value||groupsByItem.get(x).some(group=>group.key===character.value))&&(!status||x.status===status)&&[x.name,x.franchise,x.brand,x.identifier,x.notes,x.variant].some(v=>String(v||'').toLowerCase().includes(q))).sort((a,b)=>{const mode=$('sort').value;if(mode==='name')return a.name.localeCompare(b.name);if(mode==='high')return (Number(b.estimate||0)*Number(b.quantity||1))-(Number(a.estimate||0)*Number(a.quantity||1));if(mode==='low')return (Number(a.estimate||0)*Number(a.quantity||1))-(Number(b.estimate||0)*Number(b.quantity||1));return (b.created||0)-(a.created||0)});$('results').textContent=`${filtered.length} records`;$('empty').classList.toggle('hidden',filtered.length>0);$('empty').textContent=data.length?'No items match your filters.':'Your vault is empty. Add your first collectible to get started.';renderInsights();$('items').innerHTML=filtered.map(x=>{const idx=categories.indexOf(x.category);return `<article class="item"><div class="thumb">${(x.photo||x.catalogImage)?`<img src="${esc(x.photo||x.catalogImage)}" alt="Photo of ${esc(x.name)}" loading="lazy" onerror="this.style.display='none';this.parentElement.textContent='🖼️'">`:emojis[idx]||'📦'}</div><div class="info"><span class="chip">${esc(x.status)} · ${esc(x.category)}</span><strong style="margin-top:9px">${esc(x.name)}</strong><p>${esc(x.franchise||x.brand||'Uncategorized franchise')} · Qty ${Number(x.quantity)||1}</p><p class="gold" data-ebay-price-for="${esc(x.id)}">${Number(x.estimate)>0?money(Number(x.estimate))+" each · Saved estimate":x.catalogPrice?.currency==="USD"&&x.catalogPrice.amount>0?money(x.catalogPrice.amount)+(x.catalogPrice.basis==="asking"?" each · Saved eBay asking price":x.catalogPrice.basis==="community"?" each · Community estimate":" each · Listed retail"):"No item-specific price"}</p><div class="actions"><button class="btn tiny secondary" data-edit="${esc(x.id)}">Edit</button><button class="btn tiny danger" data-delete="${esc(x.id)}">Delete</button></div></div></article>`}).join('')}window.vaultSetCatalogCardPricing=pricing=>{pendingPricing=pricing};function reset(){$('vaultManualEstimate').hidden=true;window.vaultCatalogSelection=null;$('form').querySelector('[type=submit]').disabled=false;window.vaultSelectedCatalogImage='';window.vaultSelectedCatalogPrice=null;$('vaultCatalogPriceNote').hidden=true;pendingCatalogImage='';pendingPricing=null;document.getElementById('vaultPricePicker')?.remove();editing=null;existingPhoto='';$('form').reset();$('quantity').value=1;$('formTitle').textContent='Add collectible';updateIdentifier();showSpecialty();updatePhotoPreview()}function open(x){reset();if(x){$('vaultManualEstimate').hidden=false;editing=x.id;existingPhoto=x.photo||'';pendingCatalogImage=x.catalogImage||'';for(const field of ['name','category','status','franchise','collectionCharacters','collectionMovie','collectionGame','brand','identifier','variant','condition','location','purchase','estimate','date','quantity','notes'])$(field).value=x[field]??'';$('formTitle').textContent='Edit collectible';updateIdentifier();showSpecialty(x.specialty||{})}updatePhotoPreview();$('modal').classList.remove('hidden');document.body.style.overflow='hidden'}window.vaultOpenNewCollectible=()=>open();function close(){$('modal').classList.add('hidden');document.body.style.overflow=''}function updatePhotoPreview(){const wrap=$('vaultPhotoPreview'),img=$('vaultPreviewImage');if(existingPhoto||pendingCatalogImage){img.src=existingPhoto||pendingCatalogImage;wrap.style.display='flex'}else{img.removeAttribute('src');wrap.style.display='none'}}const specialtySchemas={
+(()=>{'use strict';const KEY='the-vault-v1';const categories=['Action figures','Funko Pops','Hot Toys','Sports cards','Comic books','LEGO','Video games','Movie memorabilia','Autographs','Trading cards','Statues and premium collectibles','Other collectibles','Books'];const emojis=['🦸','🎭','🦾','🏆','📚','🧱','🎮','🎬','✍️','🃏'];let data=[];let editing=null;let existingPhoto='';let pendingPricing=null;let pendingCatalogImage='';const $=id=>document.getElementById(id);const money=n=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:2}).format(n||0);const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));function toast(s){$('toast').textContent=s;$('toast').style.display='block';setTimeout(()=>$('toast').style.display='none',2800)}function load(){try{const a=JSON.parse(localStorage.getItem(KEY)||'[]');data=Array.isArray(a)?a:[]}catch(e){data=[];toast('Unable to read saved collection')}}function save(){try{localStorage.setItem(KEY,JSON.stringify(data));window.dispatchEvent(new Event('vault:collection-updated'));return true}catch(e){alert('Device storage is full or unavailable. Export a backup and try smaller photos. Your latest change was not saved.');return false}}function render(){const testIds=new Set(JSON.parse(localStorage.getItem('vault-test-item-ids')||'[]'));const owned=data.filter(x=>x.status==='Owned'&&!testIds.has(String(x.id)));const total=owned.reduce((a,x)=>a+Number(x.quantity||1),0),cost=owned.reduce((a,x)=>a+Number(x.purchase||0)*Number(x.quantity||1),0),val=owned.reduce((a,x)=>a+Number(x.estimate||0)*Number(x.quantity||1),0);$('total').textContent=total;$('cost').textContent=money(cost);$('value').textContent=money(val);$('gain').textContent=(val-cost>=0?'+':'')+money(val-cost);$('gain').style.color=val-cost>=0?'#9fdbad':'#f19d9d';$('counts').innerHTML=categories.map((c,i)=>`<span class="pill">${emojis[i]} ${esc(c)} · ${owned.filter(x=>x.category===c).reduce((a,x)=>a+Number(x.quantity||1),0)}</span>`).join('');const q=$('search').value.trim().toLowerCase(),cat=$('categoryFilter').value,status=$('statusFilter').value;const character=$('characterFilter');const selected=character.value;const grouping=window.vaultCollectionGroups;const groupsByItem=new Map(data.map(item=>[item,grouping?.(item)||[]]));const options=new Map();for(const groups of groupsByItem.values())for(const {type,label,key} of groups){if(!options.has(type))options.set(type,new Map());options.get(type).set(key,label)}character.replaceChildren(new Option('All characters, movies & games',''));for(const [type,label] of [['character','Characters'],['movie','Movies & TV'],['game','Games']]){const entries=options.get(type);if(!entries?.size)continue;const optgroup=document.createElement('optgroup');optgroup.label=label;for(const [key,name] of [...entries].sort((a,b)=>a[1].localeCompare(b[1])))optgroup.append(new Option(name,key));character.append(optgroup)}character.value=[...character.options].some(option=>option.value===selected)?selected:'';const filtered=data.filter(x=>(!cat||x.category===cat)&&(!character.value||groupsByItem.get(x).some(group=>group.key===character.value))&&(!status||x.status===status)&&[x.name,x.franchise,x.brand,x.identifier,x.notes,x.variant].some(v=>String(v||'').toLowerCase().includes(q))).sort((a,b)=>{const mode=$('sort').value;if(mode==='name')return a.name.localeCompare(b.name);if(mode==='high')return (Number(b.estimate||0)*Number(b.quantity||1))-(Number(a.estimate||0)*Number(a.quantity||1));if(mode==='low')return (Number(a.estimate||0)*Number(a.quantity||1))-(Number(b.estimate||0)*Number(b.quantity||1));return (b.created||0)-(a.created||0)});$('results').textContent=`${filtered.length} records`;$('empty').classList.toggle('hidden',filtered.length>0);$('empty').textContent=data.length?'No items match your filters.':'Your vault is empty. Add your first collectible to get started.';renderInsights();$('items').innerHTML=filtered.map(x=>{const idx=categories.indexOf(x.category);return `<article class="item"><div class="thumb">${(x.photo||x.catalogImage)?`<img src="${esc(x.photo||x.catalogImage)}" alt="Photo of ${esc(x.name)}" loading="lazy" onerror="this.style.display='none';this.parentElement.textContent='🖼️'">`:emojis[idx]||'📦'}</div><div class="info"><span class="chip">${esc(x.status)} · ${esc(x.category)}</span><strong style="margin-top:9px">${esc(x.name)}</strong><p>${esc(x.franchise||x.brand||'Uncategorized franchise')} · Qty ${Number(x.quantity)||1}</p><p class="gold" data-collection-price-for="${esc(x.id)}">${Number(x.estimate)>0?money(Number(x.estimate))+" each · Saved estimate":x.catalogPrice?.currency==="USD"&&x.catalogPrice.amount>0?money(x.catalogPrice.amount)+(x.catalogPrice.basis==="asking"?" each · Saved eBay asking price":x.catalogPrice.basis==="community"?" each · Community estimate":" each · Listed retail"):"No item-specific price"}</p><div class="actions"><button class="btn tiny secondary" data-edit="${esc(x.id)}">Edit</button><button class="btn tiny danger" data-delete="${esc(x.id)}">Delete</button></div></div></article>`}).join('')}window.vaultSetCatalogCardPricing=pricing=>{pendingPricing=pricing};function reset(){$('vaultManualEstimate').hidden=true;window.vaultCatalogSelection=null;$('form').querySelector('[type=submit]').disabled=false;window.vaultSelectedCatalogImage='';window.vaultSelectedCatalogPrice=null;$('vaultCatalogPriceNote').hidden=true;pendingCatalogImage='';pendingPricing=null;document.getElementById('vaultPricePicker')?.remove();editing=null;existingPhoto='';$('form').reset();$('quantity').value=1;$('formTitle').textContent='Add collectible';updateIdentifier();showSpecialty();updatePhotoPreview()}function open(x){reset();if(x){$('vaultManualEstimate').hidden=false;editing=x.id;existingPhoto=x.photo||'';pendingCatalogImage=x.catalogImage||'';for(const field of ['name','category','status','franchise','collectionCharacters','collectionMovie','collectionGame','brand','identifier','variant','condition','location','purchase','estimate','date','quantity','notes'])$(field).value=x[field]??'';$('formTitle').textContent='Edit collectible';updateIdentifier();showSpecialty(x.specialty||{})}updatePhotoPreview();$('modal').classList.remove('hidden');document.body.style.overflow='hidden'}window.vaultOpenNewCollectible=()=>open();function close(){$('modal').classList.add('hidden');document.body.style.overflow=''}function updatePhotoPreview(){const wrap=$('vaultPhotoPreview'),img=$('vaultPreviewImage');if(existingPhoto||pendingCatalogImage){img.src=existingPhoto||pendingCatalogImage;wrap.style.display='flex'}else{img.removeAttribute('src');wrap.style.display='none'}}const specialtySchemas={
 'Funko Pops':[['popNumber','Pop! number'],['exclusive','Retailer / convention exclusive'],['chase','Chase / variant'],['boxCondition','Box condition']],
 'Hot Toys':[['model','Model number (MMS / DX / TMS)'],['scale','Scale'],['edition','Edition / release'],['accessories','Accessories / completeness']],
 'Sports cards':[['player','Player'],['year','Year'],['set','Manufacturer / set'],['parallel','Parallel / serial number'],['grade','Grading company / grade'],['cert','Certification number']]
@@ -143,7 +143,7 @@ function runSmartSearch(){
  const q=$('smartQuery').value.trim();if(!q){$('smartMatches').textContent='Enter a collectible name to begin.';$('smartSources').innerHTML='';return}
  const matches=data.filter(x=>[x.name,x.brand,x.franchise,x.identifier].some(v=>String(v||'').toLowerCase().includes(q.toLowerCase())));
  $('smartMatches').textContent=matches.length?matches.length+' matching item(s) already in your vault: '+matches.slice(0,5).map(x=>x.name).join(', '):'No matches in your vault. Research the product using the source links below.';
- const sites=[['Amazon','https://www.amazon.com/s?k='],['eBay','https://www.ebay.com/sch/i.html?_nkw='],['Hasbro','https://shop.hasbro.com/en-us/search?search='],['LEGO','https://www.lego.com/en-us/search?q='],['Funko','https://funko.com/search/?q=']];
+ const sites=[['Amazon','https://www.amazon.com/s?k='],['Hasbro','https://shop.hasbro.com/en-us/search?search='],['LEGO','https://www.lego.com/en-us/search?q='],['Funko','https://funko.com/search/?q=']];
  $('smartSources').replaceChildren(...sites.map(([name,base])=>{const a=document.createElement('a');a.textContent='Search '+name+' ↗';a.href=base+encodeURIComponent(q);a.target='_blank';a.rel='noopener noreferrer';return a}))
 }
 $('smartSearch').onclick=runSmartSearch;
@@ -157,8 +157,7 @@ function v59Research(){
  const q=[item.name,item.identifier,item.variant,item.brand,item.specialty?.year,item.specialty?.set].filter(Boolean).join(' ').trim();
  if(!q){note.textContent='This item needs a name before researching prices.';return}
  const sold='https://www.ebay.com/sch/i.html?_nkw='+encodeURIComponent(q)+'&LH_Sold=1&LH_Complete=1';
- const active='https://www.ebay.com/sch/i.html?_nkw='+encodeURIComponent(q);
- for(const [label,url] of [['eBay sold listings',sold],['eBay active listings (asking prices)',active]]){const a=document.createElement('a');a.href=url;a.target='_blank';a.rel='noopener noreferrer';a.textContent=label+' ↗';a.style.cssText='color:#e9bf65;text-decoration:underline';host.append(a)}
+ for(const [label,url] of [['eBay sold listings',sold]]){const a=document.createElement('a');a.href=url;a.target='_blank';a.rel='noopener noreferrer';a.textContent=label+' ↗';a.style.cssText='color:#e9bf65;text-decoration:underline';host.append(a)}
  note.textContent='Search: '+q+'. Confirm issue/printing, variant, grading, condition, currency and sale date. Sold listings are not automatically verified or imported.';
 }
 $('valueItem').addEventListener('change',v59Research);
@@ -184,7 +183,7 @@ render=function(){oldRender();refreshValueOptions()};
 let chooserRequest=0;
 function showChooser(){
  $('addChooser').classList.add('active');document.body.style.overflow='hidden';
- checkVaultConnection();$('chooserQuery').value='';$('chooserType').value='all';$('chooserResults').textContent='Search to check your existing collection or open a store search.';$('chooserSources').replaceChildren();$('chooserCards').replaceChildren();$('chooserQuery').focus()
+ $('chooserQuery').value='';$('chooserType').value='all';$('chooserResults').textContent='Search to check your existing collection or open a store search.';$('chooserSources').replaceChildren();$('chooserCards').replaceChildren();$('chooserQuery').focus()
 }
 function closeChooser(){chooserRequest++;$('addChooser').classList.remove('active');document.body.style.overflow=''}
 $('chooserClose').onclick=closeChooser;
@@ -192,22 +191,6 @@ $('chooserClear').onclick=()=>{chooserRequest++;$('chooserQuery').value='';$('ch
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){if($('addChooser').classList.contains('active'))closeChooser();else if(!$('modal').classList.contains('hidden'))close()}});
 $('chooserType').addEventListener('change',()=>{chooserRequest++;$('chooserCards').replaceChildren();$('chooserResults').textContent='Ready to search '+$('chooserType').selectedOptions[0].textContent+'.';});
 $('addChooser').addEventListener('click',e=>{if(e.target===$('addChooser'))closeChooser()});
-const DEFAULT_SERVICE='https://the-vault-search.evanjames0704.workers.dev';
-$('vaultServiceUrl').value=localStorage.getItem('vault-search-service-url')||DEFAULT_SERVICE;
-async function checkVaultConnection(){
- const status=$('vaultConnectionStatus');const endpoint=$('vaultServiceUrl').value.trim().replace(/\/+$/,'');
- if(!/^https:\/\/[a-z0-9.-]+(?::\d+)?$/i.test(endpoint)){status.textContent='Merchandise search is not configured yet.';$('vaultAdminStatus').textContent='Enter a valid HTTPS Worker address.';return}
- status.textContent='Checking merchandise search availability…';$('vaultAdminStatus').textContent='Checking service…';
- try{const controller=new AbortController();const timeout=setTimeout(()=>controller.abort(),7000);let response;
- try{response=await fetch(endpoint+'/health',{signal:controller.signal,cache:'no-store'})}finally{clearTimeout(timeout)}
- if(!response.ok)throw Error('HTTP '+response.status);
- const health=await response.json();if(health.ok!==true)throw Error('Unexpected health response');
- status.textContent=health.ebayConfigured?'● Catalog search online · More merchandise results may be available.':'● Pokémon and book catalogs available · More merchandise catalogs coming soon.'; $('vaultAdminStatus').textContent=health.ebayConfigured?'Worker healthy; eBay credentials detected (search eligibility not verified).':'Worker healthy; eBay credentials not yet configured.';
- }catch(err){status.textContent='● Pokémon and book catalogs available · Merchandise search temporarily unavailable.'; $('vaultAdminStatus').textContent='Connection failed: '+err.message+'. Check Worker deployment and CORS.'}
-}
-$('vaultTestConnection').addEventListener('click',checkVaultConnection);
-$('vaultServiceUrl').addEventListener('change',()=>{localStorage.setItem('vault-search-service-url',$('vaultServiceUrl').value.trim());checkVaultConnection()});
-
 $('chooserManual').onclick=()=>{const q=$('chooserQuery').value.trim();closeChooser();open();if(q)$('name').value=q};
 async function chooserSearch(){
  const request=++chooserRequest;const type=$('chooserType').value;const rawQuery=$('chooserQuery').value.trim();const q=/^charzard$/i.test(rawQuery)?'Charizard':rawQuery;if(!q){$('chooserResults').textContent='Enter a product name or barcode.';return}
@@ -291,40 +274,6 @@ async function chooserSearch(){
    }
   }catch(err){if(request!==chooserRequest)return;section.textContent='Open Library unavailable: '+(err.name==='AbortError'?'request timed out':err.message)+'. Other sources may still work.'}
  }
- if(['all','figures','sports','other','games','lego','othercards','comics'].includes(type)){
-  const endpoint=$('vaultServiceUrl').value.trim().replace(/\/+$/,'');
-  const section=document.createElement('p');section.className='smart-note';section.style.gridColumn='1/-1';cards.append(section);
-  if(!endpoint){section.textContent='Additional merchandise catalogs are not configured yet.'}
-  else if(!/^https:\/\/[a-z0-9.-]+(?::\d+)?$/i.test(endpoint)){section.textContent='Additional merchandise catalogs are temporarily unavailable.'}
-  else try{
-   section.textContent='Searching merchandise listings through your service…';
-   const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),12000);
-   let response;try{response=await fetch(endpoint+'/search?q='+encodeURIComponent(q),{signal:controller.signal})}finally{clearTimeout(timeout)}
-   const payload=await response.json();if(!response.ok)throw Error(payload.details||payload.error||'HTTP '+response.status);
-   if(request!==chooserRequest)return;
-   if(payload.status==='not_configured'){section.textContent='Additional merchandise catalogs are being prepared. You can still add this collectible manually.'}
-   else{
-    const listings=Array.isArray(payload.items)?payload.items:[];
-    section.className='catalog-heading';section.textContent='Merchandise · eBay active listings ('+listings.length+' results)';
-    const note=document.createElement('p');note.className='smart-note';note.style.gridColumn='1/-1';note.textContent='Listing prices are seller asking prices, NOT appraised market values. Check exact edition and condition before importing.';cards.append(note);
-    for(const item of listings){
-      const tile=document.createElement('div');tile.className='tcg-card';
-      if(/^https:\/\//.test(item.image||'')){const img=document.createElement('img');img.src=item.image;img.alt=item.title||'Listing';img.loading='lazy';img.referrerPolicy='no-referrer';img.onerror=()=>img.remove();tile.append(img)}
-      const title=document.createElement('strong');title.textContent=item.title||'Untitled listing';tile.append(title);
-      const meta=document.createElement('small');meta.textContent='eBay listing'+(item.price?' • Asking '+item.currency+' '+item.price:'')+(item.condition?' • '+item.condition:'');tile.append(meta);
-      const add=document.createElement('button');add.className='btn';add.textContent='+ Quick Add';add.onclick=()=>{
-       closeChooser();open();$('name').value=item.title||q;
-       $('category').value=/funko|pop!|vinyl pop/i.test(item.title||'')?'Funko Pops':/hot toys|\bMMS\d|\bTMS\d|\bDX\d/i.test(item.title||'')?'Hot Toys':/topps|panini|bowman|upper deck|sports card/i.test(item.title||'')?'Sports cards':/lego/i.test(item.title||'')?'LEGO':/comic|graphic novel/i.test(item.title||'')?'Comic books':/card|pokemon tcg|topps|panini/i.test(item.title||'')?'Trading cards':'Action figures';updateIdentifier();
-       $('identifier').value=item.id||'';$('notes').value='Source: eBay active listing\nListing: '+(item.url||'')+'\nAsking price: '+(item.price?item.currency+' '+item.price:'unavailable')+'\nNOT a verified market value. Verify edition, authenticity, condition, and photo before saving.';
-       $('estimate').value='';pendingPricing=null;
-       if(/^https:\/\//.test(item.image||'')){const preview=$('vaultPreviewImage');preview.src=item.image;$('vaultPhotoPreview').style.display='flex';toast('Listing imported. Upload your own photo to keep artwork; marketplace photos are not stored automatically.')}
-      };tile.append(add);
-      if(/^https:\/\//.test(item.url||'')){const link=document.createElement('a');link.href=item.url;link.target='_blank';link.rel='noopener noreferrer';link.textContent='View listing ↗';link.style.cssText='font-size:12px;color:#e6bd67';tile.append(link)}
-      cards.append(tile)
-    }
-   }
-  }catch(err){if(request!==chooserRequest)return;section.textContent='Merchandise listings are temporarily unavailable. Pokémon and book search still work, or you can add the item manually.'; $('vaultAdminStatus').textContent='Search error: '+(err.name==='AbortError'?'request timed out':err.message)}
- }
  if(useToys){
   const section=document.createElement('p');section.className='smart-note';section.style.gridColumn='1/-1';section.textContent='Searching The Toy Database for action figures and collectibles…';cards.append(section);
   try{
@@ -352,7 +301,7 @@ async function chooserSearch(){
  if(!usePokemon&&!useBooks&&!useToys){const msg=document.createElement('p');msg.className='smart-note';msg.textContent=type==='hottoys'?'Hot Toys: search by character, model number and edition. Live catalog import is not connected yet.':type==='funko'?'Funko Pops: search by figure name, Pop! number and exclusive edition. Live catalog import is not connected yet.':type==='sports'?'Sports cards: search by player, year, brand, set and card number. Live sports-card catalog import is not connected yet.':type==='all'?'Search results from connected catalogs appear above. Other merchandise can be researched through the store links below.':'Dedicated catalog import is not connected for this category yet. eBay merchandise search will appear above once approved; meanwhile use store links or Add Manually.';cards.append(msg)}
  if(request!==chooserRequest)return;
  const sources=$('chooserSources');sources.replaceChildren();
- const sites=[['Amazon','https://www.amazon.com/s?k='],['eBay','https://www.ebay.com/sch/i.html?_nkw='],['Hasbro','https://shop.hasbro.com/en-us/search?search='],['LEGO','https://www.lego.com/en-us/search?q='],['Funko','https://funko.com/search/?q=']];
+ const sites=[['Amazon','https://www.amazon.com/s?k='],['Hasbro','https://shop.hasbro.com/en-us/search?search='],['LEGO','https://www.lego.com/en-us/search?q='],['Funko','https://funko.com/search/?q=']];
  for(const [name,base] of sites){const a=document.createElement('a');a.textContent='Search '+name+' ↗';a.href=base+encodeURIComponent(q);a.target='_blank';a.rel='noopener noreferrer';sources.append(a)}
 }
 async function quickAddToy(item,imageUrl){
@@ -1835,10 +1784,61 @@ function manual(){panel.hidden=true;window.vaultOpenNewCollectible();$('name')?.
 $('v11manual').onclick=manual;$('v11close').onclick=()=>{panel.hidden=true};
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const usdPrice=amount=>amount.toLocaleString('en-US',{style:'currency',currency:'USD'});
+const tcgCards=new Map();
+function lookupCatalogCard(id){
+ if(!/^[a-z0-9-]+$/i.test(id))return Promise.resolve(null);
+ if(!tcgCards.has(id)){
+  tcgCards.set(id,fetch('https://api.tcgdex.net/v2/en/cards/'+encodeURIComponent(id),{signal:AbortSignal.timeout(6000)})
+   .then(response=>{if(!response.ok)throw Error();return response.json()})
+   .then(card=>{
+    if(card.id!==id){tcgCards.delete(id);return null;}
+    return card;
+   }).catch(()=>{tcgCards.delete(id);return null}));
+ }
+ return tcgCards.get(id);
+}
+function exactCardPrices(item,card){
+ const prices=card?.id===item.pokemonCardId&&card.name?.trim().toLowerCase()===item.name.trim().toLowerCase()
+  ?card.pricing?.tcgplayer:null;
+ if(prices?.unit!=='USD')return [];
+ return Object.entries(prices).filter(([key,data])=>/^[a-z0-9-]+$/i.test(key)&&Number.isFinite(data?.marketPrice)&&data.marketPrice>0);
+}
+const visibleCardPrices=new WeakMap();
+const priceQueue=[];
+let activePriceChecks=0;
+function checkVisiblePrices(){
+ while(activePriceChecks<3&&priceQueue.length){
+  const {item,label}=priceQueue.shift();
+  if(!label.isConnected)continue;
+  activePriceChecks++;
+  void lookupCatalogCard(item.pokemonCardId).then(card=>{
+   if(!label.isConnected)return;
+   const printings=exactCardPrices(item,card);
+   const amounts=printings.map(([,data])=>data.marketPrice);
+   if(!amounts.length){
+    label.textContent='No verified TCGplayer price · Select to check available editions';
+    return;
+   }
+   const low=Math.min(...amounts),high=Math.max(...amounts);
+   label.textContent='TCGplayer market · '+usdPrice(low)+(low!==high?'–'+usdPrice(high):'')+
+    (printings.length>1?' across '+printings.length+' printings':'');
+  }).finally(()=>{activePriceChecks--;checkVisiblePrices();});
+ }
+}
+const cardPriceObserver=typeof IntersectionObserver==='function'?new IntersectionObserver(entries=>{
+ for(const {target,isIntersecting} of entries){
+  if(!isIntersecting)continue;
+  cardPriceObserver.unobserve(target);
+  const item=visibleCardPrices.get(target);
+  if(item)priceQueue.push({item,label:target});
+ }
+ checkVisiblePrices();
+},{rootMargin:'120px'}):null;
+
 async function choose(x){
  window.vaultOpenNewCollectible();
  const selectedCategory=[...($('category')?.options||[])].find(option=>option.value.toLowerCase()===x.category.toLowerCase())?.value;
- const values={name:x.name,category:selectedCategory||(x.source==='eBay listing'?'':'Action figures'),franchise:x.franchise||'',brand:x.brand||'',identifier:x.identifier||'',variant:x.variant||''};
+ const values={name:x.name,category:selectedCategory||'Other collectibles',franchise:x.franchise||'',brand:x.brand||'',identifier:x.identifier||'',variant:x.variant||''};
  for(const [id,val] of Object.entries(values)){const el=$(id);if(el){el.value=val;el.dispatchEvent(new Event('change',{bubbles:true}))}}
  // Preserve the exact selected catalog artwork URL for the saved record.
  // Browser image display does not require a cross-origin fetch permission.
@@ -1864,8 +1864,8 @@ async function choose(x){
    note.textContent='Listed retail · '+usdPrice(price)+' · '+(x.priceSource||x.source);
  }else if(x.source==='TCDB'&&Number.isFinite(x.marketPrice)&&x.marketPrice>0){
    note.textContent='TCDB reported median · '+usdPrice(x.marketPrice);
- }else if(['eBay listing','Mercari listing'].includes(x.source)&&Number.isFinite(x.askingPrice)&&x.askingPrice>0){
-   window.vaultSelectedCatalogPrice={amount:x.askingPrice,currency:'USD',source:x.source==='Mercari listing'?'Mercari':'eBay',basis:'asking'};
+ }else if(x.source==='Mercari listing'&&Number.isFinite(x.askingPrice)&&x.askingPrice>0){
+   window.vaultSelectedCatalogPrice={amount:x.askingPrice,currency:'USD',source:'Mercari',basis:'asking'};
    note.textContent=window.vaultSelectedCatalogPrice.source+' asking price · '+usdPrice(x.askingPrice);
  }
  note.hidden=false;
@@ -1904,13 +1904,12 @@ async function choose(x){
  if(baseSet)note.textContent='Checking TCGplayer and PriceCharting · '+fallbackPrice;
  const chartRequest=baseSet?window.vaultPriceChartingQuote(x.pokemonCardId):null;
  try{
-   const cardRequest=fetch('https://api.tcgdex.net/v2/en/cards/'+encodeURIComponent(x.pokemonCardId),{signal:AbortSignal.timeout(5000)})
-     .then(response=>response.ok?response.json():null).catch(()=>null);
+   const cardRequest=lookupCatalogCard(x.pokemonCardId);
    const [card,chart]=await Promise.all([cardRequest,chartRequest]);
    if(window.vaultCatalogSelection!==selection||$('modal').classList.contains('hidden')||
       $('name').value!==originalName||$('identifier').value!==originalIdentifier||$('category').value!==category)return;
-   const prices=card?.id===x.pokemonCardId&&card.name?.trim().toLowerCase()===x.name.trim().toLowerCase()?card.pricing?.tcgplayer:null;
-   const printings=Object.entries(prices||{}).filter(([key,data])=>/^[a-z0-9-]+$/i.test(key)&&Number.isFinite(data?.marketPrice)&&data.marketPrice>0);
+   const prices=card?.pricing?.tcgplayer;
+   const printings=exactCardPrices(x,card);
    const grades=chart?.id===x.pokemonCardId&&chart.currency==='USD'&&chart.name?.trim().toLowerCase()===x.name.trim().toLowerCase()?[['ungraded','Ungraded'],['psa10','PSA 10']]
      .filter(([grade])=>Number.isFinite(chart.prices?.[grade])&&chart.prices[grade]>0):[];
    if(!printings.length&&!grades.length)return;
@@ -2382,38 +2381,20 @@ async function search(){
    const source=document.createElement('a');source.href=x.sourceUrl;source.target='_blank';source.rel='noopener';source.textContent='Series source';source.className='v11sub';card.appendChild(source);
   }
   const catalogQuote=window.vaultMarvelLegendsQuote(x);
-  const price=document.createElement('div');price.className='v11sub';price.textContent=catalogQuote?(catalogQuote.basis==='community'?'Community estimate: ':'Listed retail · '+catalogQuote.source+': ')+usdPrice(catalogQuote.amount):Number.isFinite(x.retailPrice)&&x.retailPrice>0?'Listed retail: $'+x.retailPrice.toFixed(2)+(x.priceSource?' · '+x.priceSource:''):x.source==='TCDB'&&Number.isFinite(x.marketPrice)&&x.marketPrice>0?'TCDB reported median: $'+x.marketPrice.toFixed(2):Number.isFinite(x.askingPrice)&&x.askingPrice>0?(x.source==='Mercari listing'?'Mercari':'eBay')+' asking price: $'+x.askingPrice.toFixed(2):x.storefront?'Checks full retail price when selected':'No item-specific price';card.appendChild(price);
+  const price=document.createElement('div');price.className='v11sub';price.textContent=catalogQuote?(catalogQuote.basis==='community'?'Community estimate: ':'Listed retail · '+catalogQuote.source+': ')+usdPrice(catalogQuote.amount):Number.isFinite(x.retailPrice)&&x.retailPrice>0?'Listed retail: $'+x.retailPrice.toFixed(2)+(x.priceSource?' · '+x.priceSource:''):x.source==='TCDB'&&Number.isFinite(x.marketPrice)&&x.marketPrice>0?'TCDB reported median: $'+x.marketPrice.toFixed(2):Number.isFinite(x.askingPrice)&&x.askingPrice>0?'Mercari asking price: $'+x.askingPrice.toFixed(2):x.storefront?'Checks full retail price when selected':'No item-specific price';card.appendChild(price);
+  if(x.pokemonCardId&&cardPriceObserver){
+   price.textContent='Checking card price…';
+   visibleCardPrices.set(price,x);
+   cardPriceObserver.observe(price);
+  }
   const btn=document.createElement('button');btn.textContent='Add this collectible';btn.onclick=()=>choose(x);card.appendChild(btn);out.appendChild(card);
  });shown=Math.min(visible.length,shown+batch);loadMore.hidden=shown>=visible.length;loadMore.textContent='Show more ('+(visible.length-shown)+' remaining)';};
  const loadMore=document.createElement('button');loadMore.type='button';loadMore.className='vault-load-more';loadMore.onclick=renderBatch;out.after(loadMore);
- const fallbackSearches=new Map();
- let filterRun=0;
- panel.onvaultfilter=async category=>{
-  const run=++filterRun;
-  visible=category==='All'?unique:unique.filter(x=>x.category===category);
+ panel.onvaultfilter=category=>{
+  visible=category==='All'?unique:unique.filter(item=>item.category===category);
   shown=0;out.replaceChildren();
-  const message=note=>{ $('v11state').textContent=note+(notices.length?' · '+notices.join(' · '):''); };
-  if (!visible.length) {
-   message('Checking eBay listings…');
-   if (!fallbackSearches.has(category)) {
-    const params=new URLSearchParams({mode:'lookup',name:q.slice(0,100),edition:category==='All'?'':category});
-    fallbackSearches.set(category,fetch('/api/ebay/estimate?'+params,{signal:AbortSignal.timeout(8000)})
-      .then(async response=>{
-       if (!response.ok || !response.headers.get('content-type')?.includes('application/json')) return null;
-       const data=await response.json();
-       return Array.isArray(data.results)?data.results:[];
-      }).catch(()=>null));
-   }
-   const matches=await fallbackSearches.get(category);
-   if (token!==seq || run!==filterRun) return;
-   if (!matches) {
-    message('No local matches. eBay listings are unavailable. You can add the item manually.');
-    renderBatch();return;
-   }
-   visible=matches.filter(x=>typeof x.title==='string'&&/^\d{1,20}$/.test(x.id))
-    .map(x=>({name:x.title,category:category==='All'?'Collectibles':category,askingPrice:x.askingPrice,source:'eBay listing'}));
-  }
-  message(visible.length?visible.length+' matching collectibles':'No matches. You can add the item manually.');
+  const message=visible.length?visible.length+' matching collectibles':'No matches. You can add the item manually.';
+  $('v11state').textContent=message+(notices.length?' · '+notices.join(' · '):'');
   renderBatch();
  };
  await panel.onvaultfilter(panel.dataset.catalogCategory||'All');
@@ -2520,7 +2501,7 @@ body.v13-app>#v101fig,body.v13-app>#v103{display:none!important}
   <div class="v13-metrics"><div class="v13-metric"><small class="v13-muted">Collectibles</small><b id="v13count">0</b></div><div class="v13-metric"><small class="v13-muted">Wishlist</small><b id="v13wish">0</b></div></div>
   <button class="v13-primary" id="v13homeadd">＋ Add a collectible</button>
  </div>
- <div class="v13-screen" data-v13screen="collection"><div class="v13-eyebrow">Private archive</div><h1 class="v13-heading">My Collection</h1><p class="v13-muted">Your saved pieces and personal inventory.</p><div class="v13-hero"><div class="v13-muted" id="v13CollectionValueLabel">Collection estimate</div><div class="v13-value" id="v13CatalogTotal">—</div><div class="v13-muted" id="v13CatalogCoverage" aria-live="polite"></div><div class="v13-muted" id="v13EbayCoverage" aria-live="polite"></div></div><div id="v13library" class="v13-host"></div></div>
+ <div class="v13-screen" data-v13screen="collection"><div class="v13-eyebrow">Private archive</div><h1 class="v13-heading">My Collection</h1><p class="v13-muted">Your saved pieces and personal inventory.</p><div class="v13-hero"><div class="v13-muted" id="v13CollectionValueLabel">Collection estimate</div><div class="v13-value" id="v13CatalogTotal">—</div><div class="v13-muted" id="v13CatalogCoverage" aria-live="polite"></div></div><div id="v13library" class="v13-host"></div></div>
  <div class="v13-screen" data-v13screen="discover"><div class="v13-eyebrow">Explore</div><h1 class="v13-heading">Discover collectibles</h1><p class="v13-muted">Search figures, LEGO, cards and comics inside THE VAULT.</p><button class="v13-primary" id="v13search">⌕ Find & add collectibles</button><button class="v13-quiet" id="v13manualadd" type="button" style="width:100%;margin:0 0 12px">＋ Add manually</button><div class="v13-card"><h3>Find photos, names, and editions</h3><p class="v13-muted">Search across available catalogs in one place. Results show product names and photos where the source provides them.</p><div id="v13catalognotice">Catalog matches fill in available photos and listed prices.</div></div></div>
  <div class="v13-screen" data-v13screen="wishlist"><div class="v13-eyebrow">Future treasures</div><h1 class="v13-heading">Wishlist</h1><div class="v13-card"><h3>Collect what you love</h3><p class="v13-muted">Wishlist items are kept with your collection records. Open Collection to browse and filter them.</p><button class="v13-quiet" id="v13wishbrowse">Browse collection</button></div></div>
  <div class="v13-screen" data-v13screen="settings"><div class="v13-eyebrow">Your account</div><h1 class="v13-heading">Settings</h1><div class="v13-card"><h3>Membership</h3><p>Vault Free · $0 · Unlimited collection tracking</p><p>Vault Pro · $19.99 per month · Coming soon</p></div><div class="v13-card"><h3>Private by design</h3><p class="v13-muted">Completed edits save automatically on this device. When signed in, your collection syncs automatically while the app is open.</p></div><div id="v13settings"><details><summary>Cloud account & backups</summary><div id="v13cloud" class="v13-host"></div><div id="v13backup" class="v13-host"></div></details></div></div>
@@ -2687,11 +2668,8 @@ window.vaultStorefrontQuote = async (identifier,sourceUrl) => {
 </script>
 <script id="vault-auto-pricing">
 (() => {
-  const status = document.getElementById('v13EbayCoverage');
-  const cached = new Map();
   const usd = new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'});
   const freshness = 24*60*60*1000;
-  let running = false, pausedUntil = 0;
   const cardPrices = new Map();
   const storefrontPrices = new Map();
   let refreshingStorefronts = false;
@@ -2704,30 +2682,6 @@ window.vaultStorefrontQuote = async (identifier,sourceUrl) => {
       const tests = new Set(JSON.parse(localStorage.getItem('vault-test-item-ids')||'[]'));
       return saved.filter(item=>item.status==='Owned'&&!tests.has(String(item.id)));
     } catch { return []; }
-  }
-
-  function parameters(item) {
-    const name = String(item.name||'').trim();
-    const brand = String(item.brand||'').trim();
-    const variant = String(item.variant||'').trim();
-    const identifier = String(item.identifier||'').trim();
-    const identity = ['Funko Pops','LEGO'].includes(item.category) && /^\d{1,7}(?:-\d)?$/.test(identifier)
-      ? identifier.split('-')[0] : '';
-    const card = ['Trading cards','Sports cards'].includes(item.category);
-    const cardNumber = card && /^\d{1,4}(?:\/\d{1,4})?$/.test(identifier) ? identifier : '';
-    const set = card ? String(item.specialty?.set||'').trim() : '';
-    const grade = card ? String(item.specialty?.grade||'').trim() : '';
-    if (!name || (card&&!(cardNumber&&(set||variant))) ||
-        (name.split(/\s+/).length<2&&!identity&&!cardNumber)) return '';
-    const edition = [brand, variant, identity, cardNumber, set, grade]
-      .filter(value=>value&&!name.toLowerCase().includes(value.toLowerCase())).join(' ');
-    if ((name+' '+edition).length>140) return '';
-    return new URLSearchParams({name,edition}).toString();
-  }
-
-  function cachedResult(item) {
-    const result = cached.get(parameters(item));
-    return result && Date.now()-result.at<freshness ? result : null;
   }
 
   function cardKey(item) {
@@ -2815,18 +2769,16 @@ window.vaultStorefrontQuote = async (identifier,sourceUrl) => {
   }
 
   function draw(items) {
-    const totals = {sold:0,asking:0};
-    let pieces = 0, priced = 0, estimatedPieces = 0, estimateTotal = 0, askingPieces = 0, retailPieces = 0, unpricedPieces = 0;
+    let pieces = 0, estimatedPieces = 0, estimateTotal = 0, askingPieces = 0, retailPieces = 0, unpricedPieces = 0;
     const byId = new Map();
     for (const item of items) {
       const count = Math.max(1,Math.floor(Number(item.quantity)||1));
       pieces += count;
-      const quote = item.pricing?.manualOverride?null:cached.get(parameters(item))?.quote;
       const pricingKey=cardKey(item);
       const cardQuote=cardPrices.get(pricingKey);
       const chart=pricingKey.startsWith('pc:');
       const cardMarket=cardQuote?.amount||0;
-      const market=cardMarket || (quote?.basis==='sold' ? quote.amount : positive(item.estimate));
+      const market=cardMarket || positive(item.estimate);
       const storefront = /^(?:replay|toyco):\d+$/.test(item.identifier||'');
       const updatedRetail=storefrontPrices.get(storefrontKey(item))?.quote;
       const catalogPrice=updatedRetail ? {...item.catalogPrice,...updatedRetail}
@@ -2834,7 +2786,7 @@ window.vaultStorefrontQuote = async (identifier,sourceUrl) => {
       const listed=catalogPrice?.currency==='USD' ? positive(catalogPrice.amount) : 0;
       const savedAsking=catalogPrice?.basis==='asking';
       const community=catalogPrice?.basis==='community';
-      const asking=quote?.basis==='asking' ? quote.amount : savedAsking ? listed : 0;
+      const asking=savedAsking ? listed : 0;
       const retail=savedAsking ? 0 : listed;
       const estimate=market||(community?asking||retail:retail||asking);
       if(!estimate) {
@@ -2848,19 +2800,14 @@ window.vaultStorefrontQuote = async (identifier,sourceUrl) => {
         if (!market && retail&&!community) retailPieces += count;
       }
       if (cardMarket) byId.set(String(item.id),{amount:cardMarket,basis:chart?'pricecharting':'tcg',checkedAt:cardQuote.checkedAt,snapshot:cardQuote.snapshot});
-      else if (quote?.basis==='sold') byId.set(String(item.id),quote);
       else if (market) byId.set(String(item.id),{amount:market,basis:chart?'pricecharting':pricingKey?'last-tcg':'saved', checkedAt:item.pricing?.updatedAt,snapshot:item.pricing?.snapshot});
       else if (retail && (!community || !asking)) byId.set(String(item.id),{amount:retail,basis:community?'community':'retail',source:catalogPrice.source});
-      else if (asking) byId.set(String(item.id),quote?.basis==='asking'?quote:{amount:asking,basis:'saved-asking',source:catalogPrice?.source});
-      if (!quote) continue;
-      totals[quote.basis] += quote.amount*count;
-      priced += count;
+      else if (asking) byId.set(String(item.id),{amount:asking,basis:'saved-asking',source:catalogPrice?.source});
     }
-    for (const row of document.querySelectorAll('[data-ebay-price-for]')) {
-      const quote = byId.get(row.dataset.ebayPriceFor);
+    for (const row of document.querySelectorAll('[data-collection-price-for]')) {
+      const quote = byId.get(row.dataset.collectionPriceFor);
       if (!quote) continue;
-      row.textContent = quote?.basis==='unpriced' ? 'No item-specific price' : quote?.basis==='community' ? usd.format(quote.amount)+' each · Community estimate' : quote?.basis==='saved-asking' ? usd.format(quote.amount)+' each · Saved '+(quote.source||'eBay')+' asking price' : quote?.basis==='tcg' ? usd.format(quote.amount)+' each · TCGplayer market price' : quote?.basis==='last-tcg' ? usd.format(quote.amount)+' each · Last TCGplayer estimate' : quote?.basis==='pricecharting' ? usd.format(quote.amount)+' each · PriceCharting'+(quote.snapshot?' saved price':'')+(Number.isFinite(Date.parse(quote.checkedAt))?' · Checked '+new Date(quote.checkedAt).toLocaleDateString():'') : quote?.basis==='saved' ? usd.format(quote.amount)+' each · Saved estimate' : quote?.basis==='retail' ? usd.format(quote.amount)+' each · Listed retail'+(quote.source?' · '+quote.source:'') : quote ? usd.format(quote.amount)+' each · eBay '+(quote.basis==='sold'?'sold estimate':'asking estimate')+
-        ' · '+quote.sampleSize+' comparable listings'+(Number.isFinite(Date.parse(quote.checkedAt))?' · Checked '+new Date(quote.checkedAt).toLocaleDateString():'') : '';
+      row.textContent = quote?.basis==='unpriced' ? 'No item-specific price' : quote?.basis==='community' ? usd.format(quote.amount)+' each · Community estimate' : quote?.basis==='saved-asking' ? usd.format(quote.amount)+' each · Saved '+(quote.source||'eBay')+' asking price' : quote?.basis==='tcg' ? usd.format(quote.amount)+' each · TCGplayer market price' : quote?.basis==='last-tcg' ? usd.format(quote.amount)+' each · Last TCGplayer estimate' : quote?.basis==='pricecharting' ? usd.format(quote.amount)+' each · PriceCharting'+(quote.snapshot?' saved price':'')+(Number.isFinite(Date.parse(quote.checkedAt))?' · Checked '+new Date(quote.checkedAt).toLocaleDateString():'') : quote?.basis==='saved' ? usd.format(quote.amount)+' each · Saved estimate' : quote?.basis==='retail' ? usd.format(quote.amount)+' each · Listed retail'+(quote.source?' · '+quote.source:'') : '';
     }
     const value=estimatedPieces ? usd.format(estimateTotal) : '—';
     const coverage=pieces
@@ -2869,15 +2816,7 @@ window.vaultStorefrontQuote = async (identifier,sourceUrl) => {
     for(const id of ['v13value','v13CatalogTotal']) document.getElementById(id).textContent=value;
     for(const id of ['v13EstimateCoverage','v13CatalogCoverage']) document.getElementById(id).textContent=coverage;
     document.getElementById('v13CollectionValueLabel').textContent=unpricedPieces?'Priced items subtotal':'Collection estimate';
-    if (!pieces) { status.textContent=''; return; }
-    const labels = [];
-    if (totals.sold) labels.push(usd.format(totals.sold)+' sold estimate');
-    if (totals.asking) labels.push(usd.format(totals.asking)+' asking estimate');
-    if (labels.length) labels.push(priced+' of '+pieces+' pieces priced on eBay');
-    if (running) labels.push('Checking eBay…');
-    else if (Date.now()<pausedUntil) labels.push('Live eBay prices are temporarily unavailable.');
-    else if (!priced) labels.push('No verified comparable eBay listings for these pieces.');
-    status.textContent = labels.join(' · ');
+
   }
 
   async function refresh() {
@@ -2889,25 +2828,7 @@ window.vaultStorefrontQuote = async (identifier,sourceUrl) => {
       return refreshStorefronts(currentItems);
     });
     void refreshCards(items);
-    if (running || Date.now()<pausedUntil) return;
-    running = true;
-    try {
-      while (!document.hidden) {
-        const items = ownedItems();
-        const item = items.find(item=>parameters(item)&&!cachedResult(item));
-        if (!item) break;
-        draw(items);
-        const key = parameters(item);
-        const response = await fetch('/api/ebay/estimate?'+key,{signal:AbortSignal.timeout(15000)});
-        if (!response.ok || !response.headers.get('content-type')?.includes('application/json')) throw Error();
-        const {quote} = await response.json();
-        const valid = quote && ['sold','asking'].includes(quote.basis) && Number.isFinite(quote.amount) &&
-          quote.amount>0 && Number.isInteger(quote.sampleSize) && quote.sampleSize>=2;
-        cached.set(key,{at:Date.now(),quote:valid?quote:(cached.get(key)?.quote||null)});
-        await new Promise(resolve=>setTimeout(resolve,1000));
-      }
-    } catch { pausedUntil=Date.now()+15*60*1000; }
-    finally { running=false;draw(ownedItems()); }
+
   }
 
   window.addEventListener('vault:collection-updated',refresh);

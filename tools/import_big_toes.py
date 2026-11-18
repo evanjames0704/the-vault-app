@@ -43,7 +43,7 @@ def records(products, store):
     source, origin = STORES[store]
     for product in products:
         title = product["title"].strip()
-        if title.casefold() in {"additional fees", "convenience fee", "convienence fee"}:
+        if title.casefold() in {"additional fees", "convenience fee", "convienence fee", "wills test product"}:
             continue
         handle = product["handle"]
         if not title or not handle or re.search(r"[\s/\\?#]", handle) or handle in {".", ".."}:
