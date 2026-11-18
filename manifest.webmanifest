@@ -1,6 +1,6 @@
 {
-  "name": "THE VAULT Collection",
-  "short_name": "THE VAULT Collection",
+  "name": "The Vault",
+  "short_name": "The Vault",
   "description": "Your private collectible collection. Search catalogs and save purchases.",
   "start_url": "./",
   "scope": "./",
