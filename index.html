@@ -1635,6 +1635,7 @@ async function choose(x){
    const preview=$('vaultPreviewImage'),wrap=$('vaultPhotoPreview');
    if(preview&&wrap){preview.src=x.image;wrap.style.display='flex';}
  }else{window.vaultSelectedCatalogImage='';}
+ if(x.source==='TCDB'&&Number.isFinite(x.marketPrice)&&x.marketPrice>0)$('estimate').value=x.marketPrice;
  const price=x.retailPrice;
  const note=$('vaultCatalogPriceNote');
  if(Number.isFinite(price)&&price>0){
@@ -1655,9 +1656,27 @@ async function search(){
  if(q.length<2){$('v11state').textContent='Enter at least two characters.';return}
  $('v11state').textContent='Searching collectible catalogs…';$('v11results').replaceChildren();
  const results=[],notices=[];
+ let tcdbPath='';
+ try {
+  const link=new URL(q);
+  if (link.origin==='https://www.tcdb.com'&&link.pathname.startsWith('/ViewCard.cfm/'))tcdbPath=link.pathname;
+ } catch {}
+ if (tcdbPath) {
+  try {
+   const response=await fetch('/api/tcdb/card?'+new URLSearchParams({path:tcdbPath}),{signal:AbortSignal.timeout(9000)});
+   if(!response.ok)throw Error();
+   const card=await response.json();
+   if(token!==seq)return;
+   if(typeof card.name!=='string')throw Error();
+   results.push({...card,identifier:card.number});
+  } catch {
+   if(token===seq)$('v11state').textContent='TCDB card details are unavailable. You can add the card manually.';
+   return;
+  }
+ }
  const normalize=value=>String(value??'').normalize('NFKD').replace(/\p{M}/gu,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
  const terms=normalize(q).split(' ').filter(Boolean);
- const matches=x=>terms.length&&terms.every(term=>normalize([x.name,x.franchise,x.variant,x.identifier,x.brand,x.category,x.series,x.number,x.year].join(' ')).includes(term));
+ const matches=x=>!tcdbPath&&terms.length&&terms.every(term=>normalize([x.name,x.franchise,x.variant,x.identifier,x.brand,x.category,x.series,x.number,x.year].join(' ')).includes(term));
  try{const local=JSON.parse(localStorage.getItem('vault-v103-catalog')||'[]');if(Array.isArray(local))for(const x of local){const y={name:x.name,category:x.category,franchise:x.franchise,brand:x.brand,identifier:x.number,variant:x.variant,image:x.imageUrl,source:'Your imported figure catalog'};if(matches(y))results.push(y)}}catch{}
  const requests=[];
  // Licensed Marvel Legends catalog: locally bundled, no paid API.
@@ -1853,7 +1872,7 @@ async function search(){
   if(!card.querySelector('img')){const fallback=document.createElement('div');fallback.className='vault-photo-missing';fallback.textContent='Photo not available';card.appendChild(fallback)}
   const title=document.createElement('strong');title.textContent=x.name;card.appendChild(title);
   const desc=document.createElement('div');desc.className='v11sub';desc.textContent=[x.category,x.brand,x.series,x.number?'#'+x.number:'',x.variant,x.source].filter(Boolean).join(' · ');card.appendChild(desc);
-  const price=document.createElement('div');price.className='v11sub';price.textContent=Number.isFinite(x.retailPrice)&&x.retailPrice>0?'Listed retail: $'+x.retailPrice.toFixed(2):Number.isFinite(x.askingPrice)&&x.askingPrice>0?'eBay asking price: $'+x.askingPrice.toFixed(2):'Price unavailable';card.appendChild(price);
+  const price=document.createElement('div');price.className='v11sub';price.textContent=Number.isFinite(x.retailPrice)&&x.retailPrice>0?'Listed retail: $'+x.retailPrice.toFixed(2):x.source==='TCDB'&&Number.isFinite(x.marketPrice)&&x.marketPrice>0?'TCDB reported median: $'+x.marketPrice.toFixed(2):Number.isFinite(x.askingPrice)&&x.askingPrice>0?'eBay asking price: $'+x.askingPrice.toFixed(2):'Price unavailable';card.appendChild(price);
   const btn=document.createElement('button');btn.textContent='Add this collectible';btn.onclick=()=>choose(x);card.appendChild(btn);out.appendChild(card);
  });shown=Math.min(visible.length,shown+batch);loadMore.hidden=shown>=visible.length;loadMore.textContent='Show more ('+(visible.length-shown)+' remaining)';};
  const loadMore=document.createElement('button');loadMore.type='button';loadMore.className='vault-load-more';loadMore.onclick=renderBatch;out.after(loadMore);
@@ -1942,7 +1961,7 @@ for (const category of ['Comic books','Sports cards']) {
  document.getElementById('v11manual').after(button);
 }
 const title=p.querySelector('h2');if(title)title.textContent='Find & Add Collectibles';
-const desc=p.querySelector('p');if(desc)desc.textContent='Search by name, such as Pikachu or Charizard. Use Trading cards to see just the cards.';
+const desc=p.querySelector('p');if(desc)desc.textContent='Search by name or paste a TCDB card URL. Use Trading cards to see just the cards.';
 })();
 </script>
 
