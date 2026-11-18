@@ -623,6 +623,11 @@ async function restoreSession(){try{
 const status=m=>{$('v54Status').textContent=m;window.dispatchEvent(new Event('vault:auth-changed'));};
 window.vaultHasCloudSession=()=>Boolean(access&&uid);
 window.vaultCollectionAccount=()=>access?uid:null;
+window.vaultPopularSearches=()=>req('/rest/v1/rpc/vault_popular_discover_searches',{method:'POST',body:'{}'});
+window.vaultRecordDiscoverSearch=term=>{
+ if(!access||!uid)return;
+ void req('/rest/v1/rpc/vault_record_discover_search',{method:'POST',body:JSON.stringify({p_term:term})}).catch(()=>{});
+};
 window.vaultRequireCollectionAccount=()=>{
  if(window.vaultHasCloudSession())return true;
  const dialog=$('vaultSaveAccountPrompt');
@@ -2466,6 +2471,12 @@ async function search(){
  })());
  const remote=await Promise.all(requests);if(token!==seq)return;remote.forEach(a=>results.push(...a));results.push(...comicMatches);
  const unique=deduplicateCatalogResults(results);
+ const term=q.toLowerCase().replace(/\s+/g,' ');
+ // Only count phrases found in public catalog metadata.
+ if(!tcdbPath&&term.length<=40&&/^\p{L}[\p{L}\p{N} '’-]*$/u.test(term)&&
+   unique.some(item=>[item.name,item.brand,item.franchise,item.category].some(value=>
+    String(value||'').toLowerCase().split(/[^\p{L}\p{N}'’-]+/u).join(' ').includes(term)
+   )))window.vaultRecordDiscoverSearch(term);
 
  const out=$('v11results');out.replaceChildren();
  const batch=60;let shown=0, visible=unique;const renderBatch=()=>{visible.slice(shown,shown+batch).forEach(x=>{
@@ -2509,6 +2520,7 @@ body.v11clean .museum-banner{display:none!important}
 #v12filters button{background:#302719;color:#e9d6ad;border:1px solid #75603e;font-size:12px;padding:7px 11px}
 #v12filters button[aria-pressed=true]{background:#cba75e;color:#15110b}
 #v12quick{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+#v12quick[hidden]{display:none!important}
 #v12quick button{background:#33291b;color:#e5c78b;border:1px solid #705b37}
 #v12note{color:#c9b993;font-size:12px}
 </style>
@@ -2516,11 +2528,26 @@ body.v11clean .museum-banner{display:none!important}
 (()=>{
 const p=document.getElementById('v11searchpanel'),q=document.getElementById('v11q'),results=document.getElementById('v11results');
 if(!p||!q||!results)return;
-const quick=document.createElement('div');quick.id='v12quick';
-for(const word of ['Daredevil','Batman','Spider-Man','LEGO','Star Wars','Hot Toys','Pokémon Cards']){
-const b=document.createElement('button');b.type='button';b.textContent=word;b.onclick=()=>{q.value=word;document.getElementById('v11go').click()};quick.appendChild(b)
-}
+const quick=document.createElement('div');quick.id='v12quick';quick.hidden=true;
+quick.setAttribute('aria-label','Popular searches');
 q.after(quick);
+let lastPopularLoad=0;
+window.vaultRefreshPopularSearches=async()=>{
+ if(Date.now()-lastPopularLoad<60000)return;
+ lastPopularLoad=Date.now();
+ try{
+  const terms=await window.vaultPopularSearches();
+  if(!Array.isArray(terms))return;
+  quick.replaceChildren();
+  for(const term of terms){
+   const button=document.createElement('button');
+   button.type='button';button.textContent=term;
+   button.onclick=()=>{q.value=term;document.getElementById('v11go').click();};
+   quick.appendChild(button);
+  }
+  quick.hidden=!quick.childElementCount;
+ }catch{}
+};
 const filters=document.createElement('div');filters.id='v12filters';
 let active='All';
 for(const cat of ['All','Funko Pops','Action figures','Hot Toys','Trading cards','Comic books','Sports cards','LEGO','Statues and premium collectibles','Other collectibles','Movies','Books']){
@@ -2613,7 +2640,7 @@ body.v13-app>#v101fig,body.v13-app>#v103{display:none!important}
 <script id="vault13script">
 (function(){
  const $=id=>document.getElementById(id);
- function tab(t){if(t!=='welcome'&&document.body.classList.contains('vault-onboarding'))return;if(t==='collection'){for(const id of ['search','categoryFilter','characterFilter','statusFilter']){const e=$(id);if(e)e.value='';}$('sort').value='name';window.vaultRefreshFromStorage?.();}document.querySelectorAll('[data-v13screen]').forEach(x=>x.classList.toggle('active',x.dataset.v13screen===t));document.querySelectorAll('[data-v13tab]').forEach(x=>x.classList.toggle('active',x.dataset.v13tab===t));window.scrollTo(0,0);refresh()}
+ function tab(t){if(t!=='welcome'&&document.body.classList.contains('vault-onboarding'))return;if(t==='discover')void window.vaultRefreshPopularSearches();if(t==='collection'){for(const id of ['search','categoryFilter','characterFilter','statusFilter']){const e=$(id);if(e)e.value='';}$('sort').value='name';window.vaultRefreshFromStorage?.();}document.querySelectorAll('[data-v13screen]').forEach(x=>x.classList.toggle('active',x.dataset.v13screen===t));document.querySelectorAll('[data-v13tab]').forEach(x=>x.classList.toggle('active',x.dataset.v13tab===t));window.scrollTo(0,0);refresh()}
  function refresh(){try{let raw=JSON.parse(localStorage.getItem('the-vault-v1')||'[]');let a=Array.isArray(raw)?raw:Array.isArray(raw.items)?raw.items:Array.isArray(raw.collection)?raw.collection:[];let owned=a.filter(x=>x.status!=='Wishlist'&&!x.wishlist);let wish=a.length-owned.length;
  const testIds=new Set(JSON.parse(localStorage.getItem('vault-test-item-ids')||'[]'));
  const collection=owned.filter(x=>x.status==='Owned'&&!testIds.has(String(x.id)));
