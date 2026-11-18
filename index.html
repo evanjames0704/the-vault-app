@@ -1598,7 +1598,8 @@ window.vaultCategoryEstimate=category=>{
   'trading cards':3,'comic books':8,'lego':50,'video games':22,
   'video game consoles':110,'movie memorabilia':12,'books':12,'movies':12,'autographs':20,
  };
- return defaults[String(category||'').trim().toLowerCase()]||15;
+ const key=String(category||'').trim().toLowerCase();
+ return Object.hasOwn(defaults,key)?defaults[key]:15;
 };
 </script>
 <section id="v11searchpanel" hidden>
@@ -1732,6 +1733,7 @@ async function searchPlayer(name,sport,token) {
  }
  more.onclick=load;more.hidden=true;out.after(more);
  status.textContent='Looking up player cards…';
+ const playerRequest=load();
  const retailer=await findCardCollector2(name,sport).catch(()=>[]);
  if(token!==seq)return;
  retailCount=retailer.length;
@@ -1744,7 +1746,10 @@ async function searchPlayer(name,sport,token) {
   if(item.image){const img=document.createElement('img');img.src=item.image;img.alt=item.name;img.loading='lazy';row.append(img);}
   row.append(title,label,add);out.append(row);
  }
- await load();
+ await playerRequest;
+ if(token===seq&&retailCount&&!status.textContent.includes('CardCollector2')) {
+  status.textContent=retailCount+' CardCollector2 matches · '+(shown||more.textContent==='Try again'?status.textContent:'No TCDB cards found.');
+ }
 }
 
 let seq=0;
@@ -2085,7 +2090,7 @@ body.v11clean #v12advancedpanels:not([open]) > section{display:none!important}
   panels.appendChild(el);
  }
  main.appendChild(panels);
- const guide=document.createElement('div');guide.id='v12guide';guide.textContent='Search online books and movies, plus figures from imported catalogs. Exact Funko, comic issue, LEGO and game catalogs are not yet connected. Prices appear only when backed by a real valuation provider.';
+ const guide=document.createElement('div');guide.id='v12guide';guide.textContent='Search imported catalogs by name. Prices are labeled by source, with category estimates for items without a price.';
  const panel=document.getElementById('v11searchpanel');if(panel)panel.appendChild(guide);
 })();
 </script>
@@ -2108,7 +2113,7 @@ body.v13-app>#v101fig,body.v13-app>#v103{display:none!important}
   <button class="v13-primary" id="v13homeadd">＋ Add a collectible</button>
  </div>
  <div class="v13-screen" data-v13screen="collection"><div class="v13-eyebrow">Private archive</div><h1 class="v13-heading">My Collection</h1><p class="v13-muted">Your saved pieces and personal inventory.</p><div class="v13-hero"><div class="v13-muted">Collection pricing</div><div class="v13-value" id="v13CatalogTotal">—</div><div class="v13-muted" id="v13CatalogCoverage" aria-live="polite"></div><div class="v13-muted" id="v13MarketCoverage"></div><div class="v13-muted" id="v13EbayCoverage" aria-live="polite"></div></div><div id="v13library" class="v13-host"></div></div>
- <div class="v13-screen" data-v13screen="discover"><div class="v13-eyebrow">Explore</div><h1 class="v13-heading">Discover collectibles</h1><p class="v13-muted">Search the available Funko and LEGO catalogs and any imported action figures inside THE VAULT.</p><button class="v13-primary" id="v13search">⌕ Find & add collectibles</button><button class="v13-quiet" id="v13manualadd" type="button" style="width:100%;margin:0 0 12px">＋ Add manually</button><div class="v13-card"><h3>Find photos, names, and editions</h3><p class="v13-muted">Search across available catalogs in one place. Results show product names and photos where the source provides them.</p><div id="v13catalognotice">Catalog matches fill in available photos and listed prices.</div></div></div>
+ <div class="v13-screen" data-v13screen="discover"><div class="v13-eyebrow">Explore</div><h1 class="v13-heading">Discover collectibles</h1><p class="v13-muted">Search figures, LEGO, cards and comics inside THE VAULT.</p><button class="v13-primary" id="v13search">⌕ Find & add collectibles</button><button class="v13-quiet" id="v13manualadd" type="button" style="width:100%;margin:0 0 12px">＋ Add manually</button><div class="v13-card"><h3>Find photos, names, and editions</h3><p class="v13-muted">Search across available catalogs in one place. Results show product names and photos where the source provides them.</p><div id="v13catalognotice">Catalog matches fill in available photos and listed prices.</div></div></div>
  <div class="v13-screen" data-v13screen="wishlist"><div class="v13-eyebrow">Future treasures</div><h1 class="v13-heading">Wishlist</h1><div class="v13-card"><h3>Collect what you love</h3><p class="v13-muted">Wishlist items are kept with your collection records. Open Collection to browse and filter them.</p><button class="v13-quiet" id="v13wishbrowse">Browse collection</button></div></div>
  <div class="v13-screen" data-v13screen="settings"><div class="v13-eyebrow">Your account</div><h1 class="v13-heading">Settings</h1><div class="v13-card"><h3>Private by design</h3><p class="v13-muted">Completed edits save automatically on this device. Cloud Safe Sync is opt-in and requires a signed-in account; it is not an automatic background backup.</p></div><div id="v13settings"><details><summary>Cloud account & backups</summary><div id="v13cloud" class="v13-host"></div><div id="v13backup" class="v13-host"></div></details></div></div>
 </div>
@@ -2265,14 +2270,17 @@ try{const raw=sessionStorage.getItem(KEY),data=raw&&JSON.parse(raw);if(data?.fie
         if (!market && !asking && retail) retailPieces += count;
       }
       if (cardMarket) byId.set(String(item.id),{amount:cardMarket,basis:'tcg'});
+      else if (quote?.basis==='sold') byId.set(String(item.id),quote);
+      else if (market) byId.set(String(item.id),{amount:market,basis:'saved'});
+      else if (asking) byId.set(String(item.id),quote);
+      else if (retail) byId.set(String(item.id),{amount:retail,basis:'retail'});
       if (!quote) continue;
       totals[quote.basis] += quote.amount*count;
       priced += count;
-      if (!cardMarket) byId.set(String(item.id),quote);
     }
     for (const row of document.querySelectorAll('[data-ebay-price-for]')) {
       const quote = byId.get(row.dataset.ebayPriceFor);
-      row.textContent = quote?.basis==='category' ? usd.format(quote.amount)+' each · Category estimate' : quote?.basis==='tcg' ? usd.format(quote.amount)+' each · TCGplayer market price' : quote ? usd.format(quote.amount)+' each · eBay '+(quote.basis==='sold'?'sold estimate':'asking estimate')+
+      row.textContent = quote?.basis==='category' ? usd.format(quote.amount)+' each · Category estimate' : quote?.basis==='tcg' ? usd.format(quote.amount)+' each · TCGplayer market price' : quote?.basis==='saved' ? usd.format(quote.amount)+' each · Saved estimate' : quote?.basis==='retail' ? usd.format(quote.amount)+' each · Listed retail' : quote ? usd.format(quote.amount)+' each · eBay '+(quote.basis==='sold'?'sold estimate':'asking estimate')+
         ' · '+quote.sampleSize+' comparable listings' : '';
     }
     document.getElementById('v13value').textContent = estimatedPieces ? usd.format(estimateTotal) : '—';
