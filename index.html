@@ -1646,6 +1646,64 @@ async function choose(x){
  $('name')?.focus();
 }
 
+const sportSelect=document.createElement('select');
+sportSelect.setAttribute('aria-label','Search sports cards by player and sport');
+sportSelect.append(new Option('All collectibles',''));
+for (const sport of ['Baseball','Basketball','Football','Hockey','Soccer','Racing','Golf','Boxing','MMA','Cricket','Tennis','Wrestling','Multi-Sport','Misc Sports']) {
+ sportSelect.append(new Option(sport+' cards',sport));
+}
+$('v11q').after(sportSelect);
+sportSelect.addEventListener('change',()=>{if($('v11q').value.trim().length>=2)search();});
+
+async function searchPlayer(name,sport,token) {
+ const out=$('v11results'),status=$('v11state');
+ const more=document.createElement('button');more.type='button';more.className='vault-load-more';
+ let next=null,shown=0;
+ const seen=new Set();
+ async function load() {
+  more.disabled=true;
+  status.textContent=shown?'Loading more cards…':'Looking up player cards…';
+  try {
+   const params=new URLSearchParams({mode:'player',name,sport});
+   if(next)params.set('next',next);
+   const response=await fetch('/api/tcdb/card?'+params,{signal:AbortSignal.timeout(18000)});
+   if(!response.ok)throw Error();
+   const page=await response.json();
+   if(token!==seq)return;
+   for(const item of page.results) {
+    if(seen.has(item.path))continue;
+    seen.add(item.path);
+    const row=document.createElement('div');row.className='v11item';
+    const title=document.createElement('strong');title.textContent=item.name;
+    const label=document.createElement('div');label.className='v11sub';label.textContent='Sports cards · TCDB';
+    const add=document.createElement('button');add.type='button';add.textContent='Add card';
+    add.onclick=async()=>{
+     add.disabled=true;
+     try {
+      const detail=await fetch('/api/tcdb/card?'+new URLSearchParams({path:item.path}),{signal:AbortSignal.timeout(9000)});
+      const card=detail.ok?await detail.json():null;
+      if(token!==seq)return;
+      await choose(card?{...card,identifier:card.number}:{name:item.name,category:'Sports cards',source:'TCDB'});
+     } catch {
+      if(token===seq)await choose({name:item.name,category:'Sports cards',source:'TCDB'});
+     } finally {add.disabled=false;}
+    };
+    row.append(title,label,add);out.append(row);shown++;
+   }
+   next=page.next;
+   more.hidden=!next;
+   more.textContent='Show more cards';
+   status.textContent=shown?shown+' cards loaded'+(next?' · More available':''):'No cards found. Try the player’s full name and check the sport.';
+  } catch {
+   if(token===seq)status.textContent='TCDB player search is temporarily unavailable.';
+   more.hidden=false;
+   more.textContent='Try again';
+  } finally {more.disabled=false;}
+ }
+ more.onclick=load;out.after(more);
+ await load();
+}
+
 let seq=0;
 async function search(){
  const q=$('v11q').value.trim(),token=++seq;
@@ -1661,6 +1719,7 @@ async function search(){
   const link=new URL(q);
   if (link.origin==='https://www.tcdb.com'&&link.pathname.startsWith('/ViewCard.cfm/'))tcdbPath=link.pathname;
  } catch {}
+ if (!tcdbPath&&sportSelect.value){await searchPlayer(q,sportSelect.value,token);return;}
  if (tcdbPath) {
   try {
    const response=await fetch('/api/tcdb/card?'+new URLSearchParams({path:tcdbPath}),{signal:AbortSignal.timeout(9000)});
@@ -1961,7 +2020,7 @@ for (const category of ['Comic books','Sports cards']) {
  document.getElementById('v11manual').after(button);
 }
 const title=p.querySelector('h2');if(title)title.textContent='Find & Add Collectibles';
-const desc=p.querySelector('p');if(desc)desc.textContent='Search by name or paste a TCDB card URL. Use Trading cards to see just the cards.';
+const desc=p.querySelector('p');if(desc)desc.textContent='Search by name. For a player’s cards, choose their sport. You can also paste a TCDB card URL.';
 })();
 </script>
 
