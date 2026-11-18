@@ -15,6 +15,7 @@ def main():
  tmp=tempfile.TemporaryDirectory(prefix="vault-pokemon-")
  checkout=Path(tmp.name)/"data"
  subprocess.run(["git","clone","--depth","1","--filter=blob:none","https://github.com/PokemonTCG/pokemon-tcg-data.git",str(checkout)],check=True,timeout=240)
+ sets={row["id"]:row["name"] for row in json.loads((checkout/"sets"/"en.json").read_text(encoding="utf-8"))}
  paths=sorted(str(x.relative_to(checkout)) for x in (checkout/"cards"/"en").glob("*.json"))
  if a.max_files:paths=paths[:a.max_files]
  if not paths:raise SystemExit("No Pokémon card JSON files discovered")
@@ -24,7 +25,7 @@ def main():
    if not isinstance(x,dict) or not x.get("name"):continue
    images=x.get("images") or {}
    card_id=str(x.get("id") or "")
-   out.append({"id":"pokemon-tcg:"+card_id,"name":str(x["name"]),"brand":"Pokémon","category":"Trading Cards","franchise":"Pokémon","identifier":card_id,"number":str(x.get("number") or ""),"series":str(x.get("set",{}).get("name") or path.rsplit("/",1)[-1].removesuffix(".json")),"variant":str(x.get("rarity") or ""),"image":images.get("small") or images.get("large") or "","source":"PokemonTCG/pokemon-tcg-data","sourceUrl":f"https://github.com/PokemonTCG/pokemon-tcg-data/blob/master/{path}","retailPrice":None,"marketValue":None})
+   out.append({"id":"pokemon-tcg:"+card_id,"name":str(x["name"]),"brand":"Pokémon","category":"Trading Cards","franchise":"Pokémon","identifier":card_id,"number":str(x.get("number") or ""),"series":str(x.get("set",{}).get("name") or sets.get(Path(path).stem,Path(path).stem)),"variant":str(x.get("rarity") or ""),"image":images.get("small") or images.get("large") or "","source":"PokemonTCG/pokemon-tcg-data","sourceUrl":f"https://github.com/PokemonTCG/pokemon-tcg-data/blob/master/{path}","retailPrice":None,"marketValue":None})
   if i%30==0:print("Processed sets:",i+1,flush=True)
  a.output.parent.mkdir(parents=True,exist_ok=True)
  a.output.write_text(json.dumps({"schema":"vault-pokemon-tcg-v1","count":len(out),"items":out},ensure_ascii=False),encoding="utf-8")

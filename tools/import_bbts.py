@@ -2,13 +2,14 @@
 """Import BBTS product listing data when publicly accessible.
 No bot-block bypass. Supports saved authorized HTML via --input.
 """
-import argparse,json,re,time
+import argparse,json,re
 from pathlib import Path
 from urllib.parse import urljoin,urlparse
-import requests
 from bs4 import BeautifulSoup
 BASE="https://www.bigbadtoystore.com"
-def parse(html,url):
+DEFAULT_LISTINGS=[BASE+"/Search?SearchText="+term for term in ("Marvel+Legends","DC+Multiverse","Pokemon")]
+HOT_TOYS_LISTING=BASE+"/Search?HideInStock=false&HidePreorder=false&HideSoldOut=false&HideWaitlist=false&InventoryStatus=i,p,so,w&PageSize=20&SortOrder=Relevance&SearchText=Hot%20Toys&Company=28"
+def parse(html,url,hot_toys=False):
  soup=BeautifulSoup(html,"html.parser");records={}
  def add(name,link,image="",price=None,sku=""):
   link=urljoin(url,link)
@@ -17,7 +18,14 @@ def parse(html,url):
   key=urlparse(link).path.rstrip("/")
   if key in ("","/"):return
   identifier=re.sub(r"[^a-z0-9]+","-",key.lower()).strip("-")
-  records[key]={"id":"bbts-"+identifier,"name":name.strip(),"category":"Action figures","brand":"BigBadToyStore","identifier":sku,"image":urljoin(url,image) if image else "","sourceUrl":link,"retailPrice":price,"currency":"USD","priceType":"listed_retail","marketValue":None}
+  franchise="Pokémon" if re.search(r"pok[eé]mon",name,re.I) else "DC" if "dc multiverse" in name.lower() else "Marvel" if "marvel legends" in name.lower() else ""
+  previous=records.get(key,{})
+  if price is None:price=previous.get("retailPrice")
+  sku=sku or previous.get("identifier","")
+  if hot_toys:
+   model=re.search(r"\b(?:MMS|TMS|DX|CMS|VGM|PPS|SMS|QS|DS|ACS)\d+[A-Z0-9]*\b",name,re.I)
+   if model:sku=model[0].upper()
+  records[key]={"id":"bbts-"+identifier,"name":name.strip(),"category":"Hot Toys" if hot_toys else "Action figures","brand":"Hot Toys" if hot_toys else "BigBadToyStore","franchise":franchise,"identifier":sku,"image":urljoin(url,image) if image else "","sourceUrl":link,"retailPrice":price,"currency":"USD","priceType":"listed_retail","marketValue":None}
  for script in soup.select('script[type="application/ld+json"]'):
   try:root=json.loads(script.string or script.get_text())
   except (ValueError,TypeError):continue
@@ -42,23 +50,30 @@ def parse(html,url):
  for a in soup.select("a[href]"):
   href=a.get("href","")
   if not ("/Product/" in href or "/product/" in href):continue
-  img=a.find("img")
-  name=(img.get("alt","") if img else "") or a.get("title","")
-  if name:add(name,href,(img.get("data-src") or img.get("src") or "") if img else "")
+  card=a.find_parent(class_="product-card")
+  img=a.find("img") or (card.find("img") if card else None)
+  name=a.get_text(" ",strip=True) or a.get("title","") or (img.get("alt","") if img else "")
+  if name:
+   price_node=card.select_one(".product-card-price") if card else None
+   price_text=price_node.get_text(" ",strip=True) if price_node else ""
+   price=float(price_text[1:].replace(",","")) if re.fullmatch(r"\$[\d,]+\.\d{2}",price_text) else None
+   add(name,href,(img.get("data-src") or img.get("src") or "") if img else "",price)
  return list(records.values())
 def main():
  p=argparse.ArgumentParser()
- p.add_argument("--url",default=BASE+"/Search?SearchText=Marvel+Legends")
+ p.add_argument("--hot-toys",action="store_true",help="Use the manufacturer-filtered Hot Toys listings")
+ p.add_argument("--url",action="append",help="Product listing URL; may be repeated")
  p.add_argument("--input",nargs="*",type=Path)
  p.add_argument("--output",type=Path,default=Path("bbts-catalog.json"))
  a=p.parse_args()
- if a.input:pages=[(f.read_text(encoding="utf-8"),a.url) for f in a.input]
+ urls=a.url or ([HOT_TOYS_LISTING] if a.hot_toys else DEFAULT_LISTINGS)
+ if a.input:pages=[(f.read_text(encoding="utf-8"),urls[0]) for f in a.input]
  else:
-  r=requests.get(a.url,timeout=30,headers={"User-Agent":"TheVaultCatalogImporter/1.0"})
-  r.raise_for_status();pages=[(r.text,a.url)]
+  from catalog_pages import listing_pages
+  pages=(page for url in urls for page in listing_pages(url))
  items={}
  for html,url in pages:
-  for item in parse(html,url):items[item["id"]]=item
+  for item in parse(html,url,a.hot_toys):items[item["id"]]=item
  if not items:raise SystemExit("BBTS did not expose recognizable product records; supply authorized HTML or feed.")
  a.output.parent.mkdir(parents=True,exist_ok=True)
  a.output.write_text(json.dumps({"schema":"vault-bbts-v1","count":len(items),"items":list(items.values())},ensure_ascii=False),encoding="utf-8")
