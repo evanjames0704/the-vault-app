@@ -516,7 +516,7 @@ window.vaultRefreshFromStorage=()=>{load();render()};window.vaultIsBackupRecord=
 <script>
 /* V4.8: additive safeguards; preserves the v4.7 storage key and record format. */
 (()=>{'use strict';
-const $=id=>document.getElementById(id), KEY='the-vault-v1', BACKUP_KEY='vault-last-export-at';
+const $=id=>document.getElementById(id), KEY='the-vault-v1';
 const library=$('items'), panel=library?.closest('.panel'), form=$('form');if(!panel||!form)return;
 const tools=document.createElement('div');tools.className='v48-tools';
 tools.innerHTML='<button class="btn secondary" type="button" id="v48Backup">⬇ Backup now</button><button class="btn secondary" type="button" id="v48Duplicates">Find duplicates</button><button class="btn secondary" type="button" id="v48ClearFilters">Clear filters</button>';
@@ -527,10 +527,8 @@ const normalize=v=>String(v||'').trim().toLocaleLowerCase().replace(/\s+/g,' ');
 const fingerprint=x=>[normalize(x.name),normalize(x.category),normalize(x.identifier),normalize(x.variant)].join('|');
 function notice(html){banner.innerHTML=html;banner.classList.remove('v48-hidden')}
 function clearNotice(){banner.textContent='';banner.classList.add('v48-hidden')}
-function backupReminder(){const items=read();if(!items.length)return;const last=Number(localStorage.getItem(BACKUP_KEY)||0);if(!last||Date.now()-last>7*86400000){notice('<strong>Protect your collection.</strong> It has been more than a week since your last recorded backup (or no backup has been recorded). Export a copy before making major changes. <button type="button" class="btn tiny secondary" id="v48ExportReminder">Export backup</button>');$('v48ExportReminder').onclick=()=>$('export').click()}}
 $('v48Backup').onclick=()=>$('export').click();
-$('export').addEventListener('click',()=>{localStorage.setItem(BACKUP_KEY,String(Date.now()));clearNotice();},false);
-$('v48ClearFilters').onclick=()=>{for(const id of ['search','categoryFilter','statusFilter'])if($(id))$(id).value='';if($('sort'))$('sort').value='recent';$('search').dispatchEvent(new Event('input',{bubbles:true}));clearNotice();};
+$('v48ClearFilters').onclick=()=>{for(const id of ['search','categoryFilter','characterFilter','statusFilter'])if($(id))$(id).value='';if($('sort'))$('sort').value='recent';$('search').dispatchEvent(new Event('input',{bubbles:true}));clearNotice();};
 $('v48Duplicates').onclick=()=>{const records=read(),groups=new Map();for(const item of records){const key=fingerprint(item);if(!groups.has(key))groups.set(key,[]);groups.get(key).push(item)}const duplicates=[...groups.values()].filter(g=>g.length>1);if(!duplicates.length){notice('<strong>Duplicate check complete.</strong> No exact matches found by name, category, item number and variant. Different editions may still need manual review.');return}const names=duplicates.slice(0,5).map(g=>g.length+' × '+String(g[0].name||'Unnamed').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))).join('; ');notice('<strong>'+duplicates.length+' possible duplicate group(s).</strong> '+names+(duplicates.length>5?' …':'')+'. Review before deleting; identical collectibles can be intentional.');};
 // Intercept submission before the existing handler so an accidental duplicate is not silently saved.
 form.addEventListener('submit',e=>{const name=$('name')?.value.trim(),category=$('category')?.value;if(!name||!category)return;const candidate={name,category,identifier:$('identifier')?.value,variant:$('variant')?.value};const currentId=(()=>{const title=$('formTitle')?.textContent||'';return title.startsWith('Edit')?true:false})();if(currentId)return;const matches=read().filter(x=>fingerprint(x)===fingerprint(candidate));if(matches.length&&!confirm('A collectible with the same name, category, item number and variant is already in your vault. Add another record anyway?')){e.preventDefault();e.stopImmediatePropagation();}},true);
@@ -539,7 +537,6 @@ $('importFile').addEventListener('change',async e=>{const f=e.target.files?.[0];
 // Escape closes modal / discovery, and Ctrl+K focuses collection search.
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){const chooser=$('addChooser');if(chooser?.classList.contains('active')){chooser.querySelector('[aria-label="Close"]')?.click();return}if($('modal')&&!$('modal').classList.contains('hidden'))$('close')?.click();}if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();$('search')?.focus();}});
 
-backupReminder();
 })();
 </script>
 
