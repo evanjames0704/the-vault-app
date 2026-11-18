@@ -1,5 +1,5 @@
 // THE VAULT keeps a local shell for offline use.
-const CACHE = 'the-vault-shell-v15';
+const CACHE = 'the-vault-shell-v16';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icon.svg', './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
 const paths = new Set(SHELL.map(path => new URL(path, self.registration.scope).pathname));
 const home = new URL('./', self.registration.scope).href;
