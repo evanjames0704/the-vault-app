@@ -2590,7 +2590,7 @@ body.v13-app>#v101fig,body.v13-app>#v103{display:none!important}
  </div>
  <div class="v13-screen active" data-v13screen="home">
   <h1 class="v13-heading">Collection Estimate</h1>
-  <div class="v13-hero"><div class="v13-value" id="v13value">—</div><div class="v13-muted" id="v13EstimateCoverage" aria-live="polite"></div></div>
+  <div class="v13-hero"><div class="v13-value" id="v13value">—</div></div>
   <div class="v13-metrics"><div class="v13-metric"><small class="v13-muted">Collectibles</small><b id="v13count">0</b></div><div class="v13-metric"><small class="v13-muted">Wishlist</small><b id="v13wish">0</b></div></div>
   <button class="v13-primary" id="v13homeadd">＋ Add a collectible</button>
  </div>
@@ -2886,7 +2886,7 @@ window.vaultStorefrontQuote = async (identifier,sourceUrl) => {
   }
 
   function draw(items) {
-    let pieces = 0, estimatedPieces = 0, estimateTotal = 0, askingPieces = 0, retailPieces = 0, unpricedPieces = 0;
+    let pieces = 0, estimatedPieces = 0, estimateTotal = 0, unpricedPieces = 0;
     const byId = new Map();
     for (const item of items) {
       const count = Math.max(1,Math.floor(Number(item.quantity)||1));
@@ -2913,8 +2913,6 @@ window.vaultStorefrontQuote = async (identifier,sourceUrl) => {
       if (estimate) {
         estimatedPieces += count;
         estimateTotal += estimate*count;
-        if (!market && (!retail || community) && asking) askingPieces += count;
-        if (!market && retail&&!community) retailPieces += count;
       }
       if (cardMarket) byId.set(String(item.id),{amount:cardMarket,basis:chart?'pricecharting':'tcg',checkedAt:cardQuote.checkedAt,snapshot:cardQuote.snapshot});
       else if (market) byId.set(String(item.id),{amount:market,basis:chart?'pricecharting':pricingKey?'last-tcg':'saved', checkedAt:item.pricing?.updatedAt,snapshot:item.pricing?.snapshot});
@@ -2927,11 +2925,8 @@ window.vaultStorefrontQuote = async (identifier,sourceUrl) => {
       row.textContent = quote?.basis==='unpriced' ? 'No item-specific price' : quote?.basis==='community' ? usd.format(quote.amount)+' each · Community estimate' : quote?.basis==='saved-asking' ? usd.format(quote.amount)+' each · Saved '+(quote.source||'eBay')+' asking price' : quote?.basis==='tcg' ? usd.format(quote.amount)+' each · TCGplayer market price' : quote?.basis==='last-tcg' ? usd.format(quote.amount)+' each · Last TCGplayer estimate' : quote?.basis==='pricecharting' ? usd.format(quote.amount)+' each · PriceCharting'+(quote.snapshot?' saved price':'')+(Number.isFinite(Date.parse(quote.checkedAt))?' · Checked '+new Date(quote.checkedAt).toLocaleDateString():'') : quote?.basis==='saved' ? usd.format(quote.amount)+' each · Saved estimate' : quote?.basis==='retail' ? usd.format(quote.amount)+' each · Listed retail'+(quote.source?' · '+quote.source:'') : '';
     }
     const value=estimatedPieces ? usd.format(estimateTotal) : '—';
-    const coverage=pieces
-      ? estimatedPieces+' of '+pieces+' pieces included'+(askingPieces?' · '+askingPieces+' at asking price':'')+(retailPieces?' · '+retailPieces+' at listed retail':'')+(unpricedPieces?' · '+unpricedPieces+' need an item-specific price':'')
-      : 'Add a collectible to start estimating your collection.';
     for(const id of ['v13value','v13CatalogTotal']) document.getElementById(id).textContent=value;
-    for(const id of ['v13EstimateCoverage','v13CatalogCoverage']) document.getElementById(id).textContent=coverage;
+    document.getElementById('v13CatalogCoverage').textContent=pieces+(pieces===1?' item':' items');
     document.getElementById('v13CollectionValueLabel').textContent=unpricedPieces?'Priced items subtotal':'Collection estimate';
 
   }
