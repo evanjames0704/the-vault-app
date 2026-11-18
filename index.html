@@ -60,7 +60,7 @@
  <div id="medianResult" class="smart-note" style="margin-top:10px" role="status"></div>
  </div>
 </section>
-<section class="panel"><div class="top"><h2 style="margin:0">Collection Library</h2><span id="results" class="muted" style="font-size:12px"></span></div><div class="category-counts" id="counts"></div><button class="btn secondary" type="button" id="viewAllCollection">View all A–Z</button><div class="toolbar" style="margin-top:15px"><input id="search" placeholder="Search names, franchises, notes..."><select id="categoryFilter" aria-label="Collectible type"><option value="">All collectible types</option></select><select id="characterFilter" aria-label="Character, movie, or game"><option value="">All characters, movies &amp; games</option></select><select id="sort" aria-label="Sort collection"><option value="name">Name A–Z</option><option value="recent">Recently added</option><option value="high">Highest value</option><option value="low">Lowest value</option></select><select id="statusFilter"><option value="">Owned + Wishlist</option><option value="Owned">Owned</option><option value="Wishlist">Wishlist</option></select></div><div class="items" id="items"></div><div id="empty" class="empty">Your vault is empty. Add your first collectible to get started.</div></section><section class="panel"><div class="top"><h2>Collection Intelligence</h2><span class="status" id="intelTag">FREE INSIGHTS</span></div><div class="insight-grid" id="insights"></div><p class="note" id="insightNote">Values are estimates you provide, not live market prices.</p></section><section class="panel pro-panel"><div class="top"><h2 style="margin:0">✦ THE VAULT PRO</h2><span class="status" id="planStatus">FREE PLAN</span></div><p class="pro-feature">Free collectors can save up to <b>250 records</b>, with photos, wishlist, search, and backups. Pro is planned to include unlimited records, CSV reports, and advanced collection intelligence.</p></section><section class="panel"><h2>Data & Backups</h2><div class="actions"><button class="btn secondary" id="export">Export Backup</button><button class="btn secondary" id="import">Import Backup</button><button class="btn secondary" id="csv">Export CSV (Pro)</button><input id="importFile" type="file" accept="application/json,.json" hidden></div><p class="note">Stored locally in this browser on this device. Clearing Safari website data, using private browsing, or changing devices may erase your vault. Export backups regularly and save them in Files or iCloud Drive. Photos make backups larger. This preview stores collection data locally per browser and website address; it does not synchronize devices. Export a backup before moving to the hosted version. Catalog searches require internet.</p></section><section class="v54-box" id="v54Cloud"><h2>✦ Private Cloud Account <span class="status">BETA</span></h2><p class="v54-note">Optional email account and encrypted-transport cloud snapshot. Your collection stays local until you explicitly upload it. Safe Sync is optional; Smart Merge requires explicit review and approval. Export a backup before downloading a cloud snapshot.</p><details><summary>Connect cloud service (setup required)</summary></details><div class="v54-grid"><label>Email<input id="v54Email" type="email" autocomplete="email" placeholder="you@example.com"></label><label>Password<input id="v54Pass" type="password" autocomplete="current-password" placeholder="At least 12 characters"></label></div><div class="v54-actions"><button class="btn secondary" type="button" id="v54SignUp">Create account</button><button class="btn secondary" type="button" id="v54SignIn">Sign in</button><button class="btn secondary" type="button" id="v54Recover">Forgot password?</button><button class="btn secondary" type="button" id="v54SignOut">Sign out</button></div><p id="v54Status" class="v54-note" role="status" aria-live="polite">Not signed in. Your collection remains on this device.</p><div class="v54-actions"><button class="btn" type="button" id="v54Upload">Upload collection snapshot</button><button class="btn secondary" type="button" id="v54Download">Download cloud snapshot as backup</button></div><div class="v54-box" style="margin-top:14px;border-color:#a17b38"><h3 style="margin:0">✦ Automatic Safe Sync & Smart Merge (v5.9 beta)</h3><p class="v54-note">Opt-in synchronization with revision checks. Never automatically overwrites an existing collection on first connection. Keep a separate JSON backup. After both copies match, opt in to automatically exchange changes while this page is open. Conflicting edits pause sync for review; no background sync when the page is closed.</p><div class="v54-actions"><button class="btn secondary" id="v55Inspect" type="button">Compare device and cloud</button><button class="btn secondary" id="v55Start" type="button">Enable safe sync</button><button class="btn secondary" id="v55Stop" type="button">Pause sync</button></div><div class="v54-actions"><button class="btn secondary" type="button" id="v56Review">Review smart merge</button></div><div id="v56Panel" hidden style="margin-top:14px;padding:14px;border:1px solid #755a2c;border-radius:12px"></div><p id="v55Status" class="v54-note" role="status" aria-live="polite">Safe sync is paused. Sign in, compare and reconcile first. Enable separately on each device.</p></div><p class="v54-note">Cloud snapshots are stored in your Supabase project, accessible only to the signed-in account under database row-level security. Supabase administrators may access database contents. Do not upload highly sensitive notes. Never enter a service_role or secret key in this page.</p></section><div class="foot">THE VAULT • VERSION 8.1 SMART GALLERIES BETA • PRIVATE BY DEFAULT</div></main><div class="modal hidden" id="modal"><div class="dialog"><div class="dialog-head"><h2 id="formTitle" style="margin:0">Add collectible</h2><button class="close" id="close" aria-label="Close">×</button></div><div id="vaultPhotoPreview" aria-live="polite" style="display:none;margin:10px 0 16px;align-items:center;gap:14px;padding:10px;border:1px solid #6c522e;border-radius:12px"><img id="vaultPreviewImage" alt="Collectible artwork preview" style="width:82px;height:106px;object-fit:contain;background:#0b0a08;border-radius:8px"><div><strong>Catalog artwork</strong><p class="muted" style="font-size:12px;margin:6px 0">Included when available. You can replace it with your own photo.</p></div></div><form id="form"><p id="vaultCatalogPriceNote" class="muted" hidden></p><div class="fields"><div class="full"><label for="name">Item name *</label><input id="name" required maxlength="150" placeholder="e.g. Green Lantern action figure"></div><div><label for="category">Category *</label><select id="category" required></select></div><div class="full" id="specialtyFields" style="display:none;border:1px solid #66502b;border-radius:12px;padding:12px;background:#1d1913"><strong class="gold" id="specialtyTitle">Specialty details</strong><p class="note">Optional collector details, included in backups.</p><div class="fields" id="specialtyInputs"></div></div><div><label for="status">Status</label><select id="status"><option>Owned</option><option>Wishlist</option></select></div><div><label for="franchise">Franchise / universe</label><input id="franchise" maxlength="100" placeholder="DC Comics, Marvel..."></div><div><label for="collectionCharacters">Characters</label><input id="collectionCharacters" maxlength="240" placeholder="Daredevil, Punisher"></div><div><label for="collectionMovie">Movie or TV title</label><input id="collectionMovie" maxlength="120"></div><div><label for="collectionGame">Game title</label><input id="collectionGame" maxlength="120"></div><div><label for="brand">Brand / manufacturer</label><input id="brand" maxlength="100" placeholder="McFarlane, Funko..."></div><div><label for="identifier" id="identifierLabel">Set / issue / item number</label><input id="identifier" maxlength="100"></div><div><label for="variant">Edition / variant / platform</label><input id="variant" maxlength="120"></div><div><label for="condition">Condition</label><select id="condition"><option>New / Sealed</option><option>Like New</option><option>Good</option><option>Fair</option><option>Poor</option><option>Not graded</option><option>Near Mint</option><option>Lightly Played</option><option>Moderately Played</option><option>Heavily Played</option><option>Damaged</option><option>Graded / Slabbed</option></select></div><div><label for="location">Storage / display location</label><input id="location" maxlength="100" placeholder="Bedroom shelf 1"></div><input id="purchase" type="hidden"><div id="vaultManualEstimate" hidden><label for="estimate">Your estimate per item ($)</label><input id="estimate" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0.00"></div><div><label for="date">Purchase date</label><input id="date" type="date"></div><div><label for="quantity">Quantity</label><input id="quantity" type="number" min="1" max="9999" step="1" value="1"></div><div class="full"><label for="photo">Photo (optional)</label><input id="photo" type="file" accept="image/*"><div class="note">Photos are compressed on your phone to reduce storage use.</div></div><div class="full"><label for="notes">Notes / authenticity / grading</label><textarea id="notes" rows="3" maxlength="2000" placeholder="Signature certificate, comic grade, missing pieces..."></textarea></div></div><div class="actions" style="margin-top:20px"><button class="btn" type="submit">Save Collectible</button><button class="btn secondary" type="button" id="cancel">Cancel</button></div></form></div></div><div id="toast" role="status"></div>
+<section class="panel"><div class="top"><h2 style="margin:0">Collection Library</h2><span id="results" class="muted" style="font-size:12px"></span></div><div class="category-counts" id="counts"></div><button class="btn secondary" type="button" id="viewAllCollection">View all A–Z</button><div class="toolbar" style="margin-top:15px"><input id="search" placeholder="Search names, franchises, notes..."><select id="categoryFilter" aria-label="Collectible type"><option value="">All collectible types</option></select><select id="characterFilter" aria-label="Character, movie, or game"><option value="">All characters, movies &amp; games</option></select><select id="sort" aria-label="Sort collection"><option value="name">Name A–Z</option><option value="recent">Recently added</option><option value="high">Highest value</option><option value="low">Lowest value</option></select><select id="statusFilter"><option value="">Owned + Wishlist</option><option value="Owned">Owned</option><option value="Wishlist">Wishlist</option></select></div><div class="items" id="items"></div><div id="empty" class="empty">Your vault is empty. Add your first collectible to get started.</div></section><section class="panel"><div class="top"><h2>Collection Intelligence</h2><span class="status" id="intelTag">FREE INSIGHTS</span></div><div class="insight-grid" id="insights"></div><p class="note" id="insightNote">Values are estimates you provide, not live market prices.</p></section><section class="panel pro-panel"><div class="top"><h2 style="margin:0">✦ THE VAULT PRO</h2><span class="status" id="planStatus">FREE PLAN</span></div><p class="pro-feature">Free collectors can save up to <b>250 records</b>, with photos, wishlist, search, and backups. Pro is planned to include unlimited records, CSV reports, and advanced collection intelligence.</p></section><section class="panel"><h2>Data & Backups</h2><div class="actions"><button class="btn secondary" id="export">Export Backup</button><button class="btn secondary" id="import">Import Backup</button><button class="btn secondary" id="csv">Export CSV (Pro)</button><input id="importFile" type="file" accept="application/json,.json" hidden></div><p class="note">Stored locally in this browser on this device. Clearing Safari website data, using private browsing, or changing devices may erase your vault. Export backups regularly and save them in Files or iCloud Drive. Photos make backups larger. This preview stores collection data locally per browser and website address; it does not synchronize devices. Export a backup before moving to the hosted version. Catalog searches require internet.</p></section><section class="v54-box" id="v54Cloud"><h2>✦ Private Cloud Account <span class="status">BETA</span></h2><p class="v54-note">Optional email account and encrypted-transport cloud snapshot. Your collection stays local until you explicitly upload it. Safe Sync is optional; Smart Merge requires explicit review and approval. Export a backup before downloading a cloud snapshot.</p><details><summary>Connect cloud service (setup required)</summary></details><div class="v54-grid"><label>Email<input id="v54Email" type="email" autocomplete="email" placeholder="you@example.com"></label><label>Password<input id="v54Pass" type="password" autocomplete="current-password" placeholder="At least 12 characters"></label></div><div class="v54-actions"><button class="btn secondary" type="button" id="v54SignUp">Create account</button><button class="btn secondary" type="button" id="v54SignIn">Sign in</button><button class="btn secondary" type="button" id="v54Recover">Forgot password?</button><button class="btn secondary" type="button" id="v54SignOut">Sign out</button></div><p id="v54Status" class="v54-note" role="status" aria-live="polite">Not signed in. Your collection remains on this device.</p><div class="v54-actions"><button class="btn secondary" type="button" id="v54Download">Download cloud snapshot as backup</button></div><div class="v54-box" style="margin-top:14px;border-color:#a17b38"><h3 style="margin:0">Automatic collection sync</h3><p class="v54-note">Your collection syncs when you sign in, save changes, or return to the app. Keep a separate JSON backup for recovery.</p><div class="v54-actions"></div><div class="v54-actions"><button class="btn secondary" type="button" hidden id="v56Review">Review smart merge</button></div><div id="v56Panel" hidden style="margin-top:14px;padding:14px;border:1px solid #755a2c;border-radius:12px"></div><p id="v55Status" class="v54-note" role="status" aria-live="polite">Safe sync is paused. Sign in, compare and reconcile first. Enable separately on each device.</p></div><p class="v54-note">Cloud snapshots are stored in your Supabase project, accessible only to the signed-in account under database row-level security. Supabase administrators may access database contents. Do not upload highly sensitive notes. Never enter a service_role or secret key in this page.</p></section><div class="foot">THE VAULT • VERSION 8.1 SMART GALLERIES BETA • PRIVATE BY DEFAULT</div></main><div class="modal hidden" id="modal"><div class="dialog"><div class="dialog-head"><h2 id="formTitle" style="margin:0">Add collectible</h2><button class="close" id="close" aria-label="Close">×</button></div><div id="vaultPhotoPreview" aria-live="polite" style="display:none;margin:10px 0 16px;align-items:center;gap:14px;padding:10px;border:1px solid #6c522e;border-radius:12px"><img id="vaultPreviewImage" alt="Collectible artwork preview" style="width:82px;height:106px;object-fit:contain;background:#0b0a08;border-radius:8px"><div><strong>Catalog artwork</strong><p class="muted" style="font-size:12px;margin:6px 0">Included when available. You can replace it with your own photo.</p></div></div><form id="form"><p id="vaultCatalogPriceNote" class="muted" hidden></p><div class="fields"><div class="full"><label for="name">Item name *</label><input id="name" required maxlength="150" placeholder="e.g. Green Lantern action figure"></div><div><label for="category">Category *</label><select id="category" required></select></div><div class="full" id="specialtyFields" style="display:none;border:1px solid #66502b;border-radius:12px;padding:12px;background:#1d1913"><strong class="gold" id="specialtyTitle">Specialty details</strong><p class="note">Optional collector details, included in backups.</p><div class="fields" id="specialtyInputs"></div></div><div><label for="status">Status</label><select id="status"><option>Owned</option><option>Wishlist</option></select></div><div><label for="franchise">Franchise / universe</label><input id="franchise" maxlength="100" placeholder="DC Comics, Marvel..."></div><div><label for="collectionCharacters">Characters</label><input id="collectionCharacters" maxlength="240" placeholder="Daredevil, Punisher"></div><div><label for="collectionMovie">Movie or TV title</label><input id="collectionMovie" maxlength="120"></div><div><label for="collectionGame">Game title</label><input id="collectionGame" maxlength="120"></div><div><label for="brand">Brand / manufacturer</label><input id="brand" maxlength="100" placeholder="McFarlane, Funko..."></div><div><label for="identifier" id="identifierLabel">Set / issue / item number</label><input id="identifier" maxlength="100"></div><div><label for="variant">Edition / variant / platform</label><input id="variant" maxlength="120"></div><div><label for="condition">Condition</label><select id="condition"><option>New / Sealed</option><option>Like New</option><option>Good</option><option>Fair</option><option>Poor</option><option>Not graded</option><option>Near Mint</option><option>Lightly Played</option><option>Moderately Played</option><option>Heavily Played</option><option>Damaged</option><option>Graded / Slabbed</option></select></div><div><label for="location">Storage / display location</label><input id="location" maxlength="100" placeholder="Bedroom shelf 1"></div><input id="purchase" type="hidden"><div id="vaultManualEstimate" hidden><label for="estimate">Your estimate per item ($)</label><input id="estimate" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0.00"></div><div><label for="date">Purchase date</label><input id="date" type="date"></div><div><label for="quantity">Quantity</label><input id="quantity" type="number" min="1" max="9999" step="1" value="1"></div><div class="full"><label for="photo">Photo (optional)</label><input id="photo" type="file" accept="image/*"><div class="note">Photos are compressed on your phone to reduce storage use.</div></div><div class="full"><label for="notes">Notes / authenticity / grading</label><textarea id="notes" rows="3" maxlength="2000" placeholder="Signature certificate, comic grade, missing pieces..."></textarea></div></div><div class="actions" style="margin-top:20px"><button class="btn" type="submit">Save Collectible</button><button class="btn secondary" type="button" id="cancel">Cancel</button></div></form></div></div><div id="toast" role="status"></div>
 <style>
 #addChooser{position:fixed;inset:0;background:#000c;z-index:1000;display:none;align-items:center;justify-content:center;padding:16px}
 #addChooser.active{display:flex}
@@ -135,7 +135,7 @@ if(previous&&Math.abs(record.estimate-Number(previous.estimate||0))>0.005&&!pend
 record.priceHistory=previous?.priceHistory?previous.priceHistory.slice(-89):[];
 if(record.pricing&&!record.pricing.manualOverride&&record.estimate>0&&(!previous||Math.abs(record.estimate-Number(previous.estimate||0))>0.005)){
 record.priceHistory.push({at:new Date().toISOString(),value:record.estimate,source:record.pricing.source||'TCGplayer via TCGdex'});
-}record.quantity=Math.max(1,Math.floor(Number($('quantity').value)||1));if(!record.name)throw Error('Name is required');const old=data;data=editing?data.map(x=>x.id===editing?record:x):[...data,record];if(save()){window.vaultSelectedCatalogImage='';window.vaultSelectedCatalogPrice=null;sessionStorage.removeItem('vault-draft-v1');close();render();window.dispatchEvent(new Event('vault:collection-updated'));toast('Collectible saved on this device')}else data=old}catch(err){alert(err.message||'Could not save item')}finally{button.disabled=false}});$('export').onclick=()=>{const blob=new Blob([JSON.stringify({app:'THE VAULT',version:1,exportedAt:new Date().toISOString(),items:data},null,2)],{type:'application/json'});const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='the-vault-backup-'+new Date().toISOString().slice(0,10)+'.json';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),3000);toast('Backup prepared — save it to Files')};$('import').onclick=()=>{if(window.vaultSyncActive?.()){alert('Pause Safe Sync before importing a backup.');return;}$('importFile').click()};$('importFile').onchange=async e=>{const file=e.target.files[0];if(!file)return;try{if(window.vaultSyncActive?.())throw Error('Pause Safe Sync before importing a backup.');if(file.size>30*1024*1024)throw Error('Backup is too large for this version');const parsed=JSON.parse(await file.text());if(parsed.app!=='THE VAULT'||!Array.isArray(parsed.items)||!parsed.items.every(validRecord))throw Error('This is not a valid THE VAULT backup');if(window.vaultSyncActive?.())throw Error('Pause Safe Sync before importing a backup.');if(!confirm(`Replace your current ${data.length} records with ${parsed.items.length} records from this backup? Export your current data first if needed.`))return;const old=data;data=parsed.items;if(save()){render();toast('Backup restored')}else data=old}catch(err){alert(err.message||'Could not import backup')}finally{e.target.value=''}};function renderInsights(){const owned=data.filter(x=>x.status==='Owned');const wish=data.filter(x=>x.status==='Wishlist');const count=c=>owned.filter(x=>x.category===c).reduce((a,x)=>a+Number(x.quantity||1),0);const top=categories.map(c=>({c,n:count(c)})).sort((a,b)=>b.n-a.n)[0];const most=owned.slice().sort((a,b)=>Number(b.estimate||0)*Number(b.quantity||1)-Number(a.estimate||0)*Number(a.quantity||1))[0];const fields=[['Wishlist',wish.length+' items'],['Largest gallery',top&&top.n?top.c:'—'],['Top valued item',most?most.name:'—'],['Collection records',String(data.length)]];$('insights').innerHTML=fields.map(([a,b])=>`<div class="insight"><small>${esc(a)}</small><b>${esc(b)}</b></div>`).join('');$('tierTag').textContent='VAULT FREE';$('planStatus').textContent='VAULT FREE';$('intelTag').textContent='COLLECTION INSIGHTS'}
+}record.quantity=Math.max(1,Math.floor(Number($('quantity').value)||1));if(!record.name)throw Error('Name is required');const old=data;data=editing?data.map(x=>x.id===editing?record:x):[...data,record];if(save()){window.vaultSelectedCatalogImage='';window.vaultSelectedCatalogPrice=null;sessionStorage.removeItem('vault-draft-v1');close();render();window.dispatchEvent(new Event('vault:collection-updated'));toast('Collectible saved on this device')}else data=old}catch(err){alert(err.message||'Could not save item')}finally{button.disabled=false}});$('export').onclick=()=>{const blob=new Blob([JSON.stringify({app:'THE VAULT',version:1,exportedAt:new Date().toISOString(),items:data},null,2)],{type:'application/json'});const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='the-vault-backup-'+new Date().toISOString().slice(0,10)+'.json';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),3000);toast('Backup prepared — save it to Files')};$('import').onclick=()=>{if(window.vaultHasCloudSession?.()){alert('Sign out before importing a backup on this device.');return;}$('importFile').click()};$('importFile').onchange=async e=>{const file=e.target.files[0];if(!file)return;try{if(window.vaultHasCloudSession?.())throw Error('Sign out before importing a backup on this device.');if(file.size>30*1024*1024)throw Error('Backup is too large for this version');const parsed=JSON.parse(await file.text());if(parsed.app!=='THE VAULT'||!Array.isArray(parsed.items)||!parsed.items.every(validRecord))throw Error('This is not a valid THE VAULT backup');if(window.vaultHasCloudSession?.())throw Error('Sign out before importing a backup on this device.');if(!confirm(`Replace your current ${data.length} records with ${parsed.items.length} records from this backup? Export your current data first if needed.`))return;const old=data;data=parsed.items;if(save()){render();toast('Backup restored')}else data=old}catch(err){alert(err.message||'Could not import backup')}finally{e.target.value=''}};function renderInsights(){const owned=data.filter(x=>x.status==='Owned');const wish=data.filter(x=>x.status==='Wishlist');const count=c=>owned.filter(x=>x.category===c).reduce((a,x)=>a+Number(x.quantity||1),0);const top=categories.map(c=>({c,n:count(c)})).sort((a,b)=>b.n-a.n)[0];const most=owned.slice().sort((a,b)=>Number(b.estimate||0)*Number(b.quantity||1)-Number(a.estimate||0)*Number(a.quantity||1))[0];const fields=[['Wishlist',wish.length+' items'],['Largest gallery',top&&top.n?top.c:'—'],['Top valued item',most?most.name:'—'],['Collection records',String(data.length)]];$('insights').innerHTML=fields.map(([a,b])=>`<div class="insight"><small>${esc(a)}</small><b>${esc(b)}</b></div>`).join('');$('tierTag').textContent='VAULT FREE';$('planStatus').textContent='VAULT FREE';$('intelTag').textContent='COLLECTION INSIGHTS'}
 $('csv').onclick=()=>{const cols=['name','category','status','franchise','brand','identifier','variant','condition','location','purchase','estimate','quantity','date','notes','specialty'];const q=x=>{const value=String(x??'');return '"'+(typeof x==='string'&&/^[\s\uFEFF]*[=+@-]|^[\t\r\n]/.test(value)?"'":'')+value.replace(/"/g,'""')+'"';};const csv=[cols.join(','),...data.map(x=>cols.map(c=>q(c==='specialty'?JSON.stringify(x.specialty||{}):x[c])).join(','))].join('\r\n');const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='the-vault-collection.csv';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),3000);toast('CSV report prepared')};
 let pendingMedian=null;
 function refreshValueOptions(){const sel=$('valueItem'),prior=sel.value;sel.innerHTML='<option value="">Select an owned collectible</option>'+data.filter(x=>x.status==='Owned').map(x=>'<option value="'+esc(x.id)+'">'+esc(x.name)+'</option>').join('');if(data.some(x=>x.id===prior))sel.value=prior}
@@ -605,13 +605,12 @@ if(recoveryFragment.get('type')==='recovery'||(recoveryFragment.has('error_code'
 }
 const AUTO_SYNC_PREFERENCE='vault-safe-sync-v1';
 const COLLECTION_OWNER='vault-collection-cloud-owner';
-const syncPauseKey=account=>'vault-sync-paused:'+account;
 let access=null, uid=null, refreshToken=null, expiresAt=0;
 const SESSION_KEY=PREFIX+'session-v2';
 let cloudLoadGeneration=0, cloudLoadActive=false;
 function clearSession(){cloudLoadGeneration++;access=null;uid=null;refreshToken=null;expiresAt=0;localStorage.removeItem(SESSION_KEY)}
 function saveSession(b){if(!b?.access_token||!b?.refresh_token||!b?.user?.id)throw Error('Invalid session response');access=b.access_token;uid=b.user.id;refreshToken=b.refresh_token;expiresAt=Date.now()+Math.max(30,Number(b.expires_in)||3600)*1000;localStorage.setItem(SESSION_KEY,JSON.stringify({access,uid,refreshToken,expiresAt,email:b.user.email||''}));}
-async function refreshSession(){if(!refreshToken)return false;const account=uid,token=refreshToken;const {url,key}=config();const r=await fetch(url+'/auth/v1/token?grant_type=refresh_token',{method:'POST',headers:{apikey:key,'Content-Type':'application/json'},body:JSON.stringify({refresh_token:token})});if(uid!==account||refreshToken!==token)return false;if(!r.ok){clearSession();return false}const b=await r.json();if(uid!==account||refreshToken!==token)return false;saveSession(b);return true}
+async function refreshSession(){if(!refreshToken)return false;const account=uid,token=refreshToken;const {url,key}=config();const r=await fetch(url+'/auth/v1/token?grant_type=refresh_token',{signal:AbortSignal.timeout(20000),method:'POST',headers:{apikey:key,'Content-Type':'application/json'},body:JSON.stringify({refresh_token:token})});if(uid!==account||refreshToken!==token)return false;if(!r.ok){clearSession();return false}const b=await r.json();if(uid!==account||refreshToken!==token)return false;saveSession(b);return true}
 async function restoreSession(){try{
  const previousProject=localStorage.getItem(PREFIX+'url');
  localStorage.removeItem(PREFIX+'url');
@@ -621,7 +620,7 @@ async function restoreSession(){try{
 const status=m=>{$('v54Status').textContent=m;window.dispatchEvent(new Event('vault:auth-changed'));};
 window.vaultHasCloudSession=()=>Boolean(access&&uid);
 const config=()=>({url:VAULT_PROJECT_URL,key:VAULT_PUBLISHABLE_KEY});
-async function req(path,opts={}){const account=uid;if(refreshToken&&expiresAt<Date.now()+120000&&!path.startsWith('/auth/v1/')){if(!await refreshSession()&&(!access||uid!==account))throw Error('Sign in again to continue.');}const {url,key}=config();const headers={'apikey':key,'Content-Type':'application/json',...(access?{'Authorization':'Bearer '+access}:{'Authorization':'Bearer '+key}),...(opts.headers||{})};const r=await fetch(url+path,{...opts,headers});const t=await r.text();let body;try{body=t?JSON.parse(t):null}catch{body=t}if(!r.ok)throw Error((body&&((body.error_description)||(body.msg)||(body.message)||(body.error)))||('HTTP '+r.status));return body}
+async function req(path,opts={}){const account=uid;if(refreshToken&&expiresAt<Date.now()+120000&&!path.startsWith('/auth/v1/')){if(!await refreshSession()&&(!access||uid!==account))throw Error('Sign in again to continue.');}const {url,key}=config();const headers={'apikey':key,'Content-Type':'application/json',...(access?{'Authorization':'Bearer '+access}:{'Authorization':'Bearer '+key}),...(opts.headers||{})};const r=await fetch(url+path,{signal:AbortSignal.timeout(20000),...opts,headers});const t=await r.text();let body;try{body=t?JSON.parse(t):null}catch{body=t}if(!r.ok)throw Error((body&&((body.error_description)||(body.msg)||(body.message)||(body.error)))||('HTTP '+r.status));return body}
 const credentials=()=>{const email=$('v54Email').value.trim(),password=$('v54Pass').value;if(!/^\S+@\S+\.\S+$/.test(email)||password.length<12)throw Error('Enter a valid email and password of at least 12 characters.');return {email,password}};
 async function recoveryRequest(path,{method,body,token}){
  const response=await fetch(VAULT_PROJECT_URL+'/auth/v1/'+path,{
@@ -692,27 +691,14 @@ $('v54SignUp').onclick=async()=>{try{const c=credentials();const b=await req('/a
 $('v54SignIn').onclick=async()=>{try{const c=credentials();const b=await req('/auth/v1/token?grant_type=password',{method:'POST',body:JSON.stringify(c)});if(!b.access_token||!b.user?.id)throw Error('Sign-in did not return a valid session');saveSession(b);$('v54Pass').value='';status('Signed in as '+(b.user.email||c.email)+'. You will stay signed in on this device unless you sign out or clear browser data.');void loadCloudCollection()}catch(e){status('Sign-in failed: '+e.message)}};
 $('v54SignOut').onclick=async()=>{if(access){try{await req('/auth/v1/logout',{method:'POST'})}catch{}}clearSession();status('Signed out. Local collection is unchanged.')};
 function ensure(){if(!access||!uid)throw Error('Sign in first.');}
-$('v54Upload').onclick=async()=>{try{
- ensure();const items=JSON.parse(localStorage.getItem(K)||'[]');if(!Array.isArray(items))throw Error('Local collection is invalid');
- const remote=await v55Remote();
- if(remote){
-  if(v55Canonical(remote.items)===v55Canonical(items)){status('Cloud and device already match. Nothing to upload.');return}
-  throw Error('Cloud already contains a different collection. Upload blocked to protect both copies. Use Compare device and cloud, then preview a safe merge.');
- }
- if(!confirm('Cloud has no saved collection. Create your first snapshot of '+items.length+' records? Save a JSON backup first.'))return;
- const account=uid;
- const revision=await v55Write(items,0);
- if(uid!==account)return;
- localStorage.setItem(COLLECTION_OWNER,account);
- status('First cloud snapshot created safely ('+items.length+' records, revision '+revision+').');
- }catch(e){status('Safe upload: '+e.message)}
-};
 $('v54Download').onclick=async()=>{try{ensure();const b=await req('/rest/v1/vault_snapshots?select=items,updated_at&user_id=eq.'+encodeURIComponent(uid)+'&limit=1');if(!Array.isArray(b)||!b.length)throw Error('No cloud snapshot exists for this account');if(!Array.isArray(b[0].items))throw Error('Cloud snapshot is invalid');const pack={app:'THE VAULT',version:1,exportedAt:new Date().toISOString(),items:b[0].items};const blob=new Blob([JSON.stringify(pack,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='the-vault-cloud-'+new Date().toISOString().slice(0,10)+'.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);status('Cloud snapshot backup download initiated ('+pack.items.length+' records). Check the file, then use Import Backup if you want to restore. Your current collection was NOT overwritten.')}catch(e){status('Download failed: '+e.message)}};
 void restoreSession().then(()=>{if(!recoveryToken)void loadCloudCollection();});
 queueMicrotask(showPasswordRecovery);
 // Revision-checked cloud collection synchronization.
-let v55Timer=null,v55Busy=false,v55Rev=null,v55Baseline=null,v55Generation=0;window.vaultSyncActive=()=>!!v55Timer;
-const v55Status=m=>{
+let v55Timer=null,v55SigningOut=false;
+const v55Status=(m,review=false)=>{
+ $('v56Review').hidden=!review;
+ if($('v13ReviewSync'))$('v13ReviewSync').hidden=!review;
  $('v55Status').textContent=m;
  const visible=$('v13SyncStatus');
  if(visible)visible.textContent=m;
@@ -720,28 +706,67 @@ const v55Status=m=>{
 const v55Local=()=>{const raw=localStorage.getItem(K)||'[]';const items=JSON.parse(raw);if(!Array.isArray(items))throw Error('Local collection is invalid');return {raw,items}};
 const v55Canonical=v=>JSON.stringify(v,(_k,x)=>x&&typeof x==='object'&&!Array.isArray(x)?Object.fromEntries(Object.keys(x).sort().map(k=>[k,x[k]])):x);
 const v55Fingerprint=raw=>v55Canonical(JSON.parse(raw));
-// With no checkpoint, only copy a strict, verified superset with no edits or duplicate records.
-function v55IncludesOnlyAdditions(smaller,larger){
- if(!smaller.length||larger.length<=smaller.length)return false;
- const byId=new Map();
- for(const record of larger){
-  if(typeof record.id!=='string'||!record.id||byId.has(record.id))return false;
-  byId.set(record.id,record);
+function v55Index(items){
+ const indexed=new Map();
+ for(const item of items){
+  if(typeof item.id!=='string'||!item.id||indexed.has(item.id))throw Error('Collection contains a missing or duplicate record ID.');
+  indexed.set(item.id,item);
  }
- const shared=new Set();
- const signatures=new Set();
- for(const record of smaller){
-  if(shared.has(record.id)||!byId.has(record.id)||v55Canonical(record)!==v55Canonical(byId.get(record.id)))return false;
-  shared.add(record.id);
-  signatures.add(v56Signature(record));
+ return indexed;
+}
+async function v55RecordDigests(items){
+ return Object.fromEntries(await Promise.all(items.map(async item=>[item.id,await v55Digest(v55Canonical(item))])));
+}
+function v55AutomaticQuote(a,b){
+ if(a.pricing?.manualOverride!==false||b.pricing?.manualOverride!==false)return null;
+ const {pricing:ap,estimate:ae,priceHistory:ah,...ad}=a;
+ const {pricing:bp,estimate:be,priceHistory:bh,...bd}=b;
+ const identity=p=>[p.source,p.cardId,p.printing,p.valuationType];
+ if(!ap.source||v55Canonical(identity(ap))!==v55Canonical(identity(bp))||v55Canonical(ad)!==v55Canonical(bd))return null;
+ const at=Date.parse(ap.updatedAt||ap.lastChecked),bt=Date.parse(bp.updatedAt||bp.lastChecked);
+ if(!Number.isFinite(at)||!Number.isFinite(bt)||(at===bt&&ae!==be))return null;
+ const history=new Map([...(ah||[]),...(bh||[])].map(entry=>[v55Canonical(entry),entry]));
+ return {...(at>bt?a:b),priceHistory:[...history.values()].sort((x,y)=>String(x.at).localeCompare(String(y.at))).slice(-90)};
+}
+async function v55Merge(localItems,remoteItems,base){
+ const local=v55Index(localItems),remote=v55Index(remoteItems);
+ const result=new Map(remote);
+ // A legacy copy has no deletion history. Only reconcile copies with common record IDs.
+ if(!base&&local.size&&remote.size&&![...local.keys()].some(id=>remote.has(id)))return null;
+ const [localHashes,remoteHashes]=base?await Promise.all([
+  v55RecordDigests(localItems),v55RecordDigests(remoteItems),
+ ]):[null,null];
+ for(const id of new Set([...local.keys(),...remote.keys()])){
+  const a=local.get(id),b=remote.get(id);
+  if(v55Canonical(a)===v55Canonical(b))continue;
+  if(base){
+   const previous=Object.hasOwn(base,id)?base[id]:undefined;
+   const localHash=a?localHashes[id]:undefined,remoteHash=b?remoteHashes[id]:undefined;
+   if(localHash===previous)continue;
+   if(remoteHash===previous){
+    if(a)result.set(id,a);
+    else result.delete(id);
+    continue;
+   }
+  }else if(!a||!b){
+   if(a)result.set(id,a);
+   continue;
+  }
+  const quote=a&&b&&v55AutomaticQuote(a,b);
+  if(!quote)return null;
+  result.set(id,quote);
  }
- for(const record of larger){
-  if(shared.has(record.id))continue;
-  const signature=v56Signature(record);
-  if(signatures.has(signature))return false;
-  signatures.add(signature);
+ // Existing intentional copies may stay. Combining independent additions must not create duplicates.
+ const seen=new Map();
+ for(const item of result.values()){
+  const key=v56Signature(item);
+  if(!seen.has(key))seen.set(key,[]);
+  for(const other of seen.get(key)){
+   if(!(local.has(item.id)&&local.has(other)||remote.has(item.id)&&remote.has(other)))return null;
+  }
+  seen.get(key).push(item.id);
  }
- return true;
+ return [...result.values()];
 }
 const v55CheckpointKey=account=>'vault-sync-checkpoint:'+account;
 async function v55Digest(fingerprint){
@@ -756,9 +781,9 @@ function v55ReadCheckpoint(account){
 }
 async function v55SaveCheckpoint(account,revision,fingerprint){
  try{
-  const digest=await v55Digest(fingerprint);
+  const [digest,records]=await Promise.all([v55Digest(fingerprint),v55RecordDigests(JSON.parse(fingerprint))]);
   if((v55ReadCheckpoint(account)?.revision||0)<=revision){
-   localStorage.setItem(v55CheckpointKey(account),JSON.stringify({revision,digest}));
+   localStorage.setItem(v55CheckpointKey(account),JSON.stringify({revision,digest,records}));
   }
  }catch{}
 }
@@ -774,111 +799,89 @@ function v55RestoreWithBackup(account,before,after,revision){
 async function v55Remote(){ensure();const r=await req('/rest/v1/vault_snapshots?select=items,revision,updated_at&user_id=eq.'+encodeURIComponent(uid)+'&limit=1');if(!Array.isArray(r))throw Error('Unexpected cloud response');return r[0]||null}
 async function v55Write(items,revision){const b=await req('/rest/v1/rpc/vault_sync_write',{method:'POST',body:JSON.stringify({p_items:items,p_expected_revision:revision})});if(typeof b!=='number')throw Error('Unexpected sync response');return b}
 async function loadCloudCollection(){
- if(!access||!uid||v55Timer||cloudLoadActive||localStorage.getItem(syncPauseKey(uid)))return;
+ if(!access||!uid||v55SigningOut||recoveryToken||cloudLoadActive||v56Plan)return;
  cloudLoadActive=true;
- const account=uid,generation=++cloudLoadGeneration;
- const current=()=>generation===cloudLoadGeneration&&uid===account&&!v55Timer&&
-   !localStorage.getItem(syncPauseKey(account));
+ const account=uid,generation=cloudLoadGeneration;
+ const current=()=>generation===cloudLoadGeneration&&uid===account;
+ let retry=false;
  try{
   const before=v55Local();
   const owner=localStorage.getItem(COLLECTION_OWNER)||localStorage.getItem(AUTO_SYNC_PREFERENCE);
   if(before.items.length&&owner&&owner!==account){
-   v55Status('This device collection belongs to another account. Automatic sync paused.');
+   v55Status('This device collection belongs to another account. Sign into that account to sync it.');
    return;
   }
+  if(!v55Timer)v55Timer=setInterval(loadCloudCollection,15000);
   const remote=await v55Remote();
   if(!current())return;
-  if(v55Local().raw!==before.raw){
-   // A save arrived during lookup. Recheck the newer device copy after this request ends.
-   queueMicrotask(loadCloudCollection);
-   return;
-  }
   if(remote&&(!Array.isArray(remote.items)||!Number.isSafeInteger(remote.revision)||remote.revision<1||
     !remote.items.every(window.vaultIsBackupRecord)))throw Error('Cloud backup contains unsupported records.');
   if(!before.items.every(window.vaultIsBackupRecord))throw Error('Device collection contains unsupported records.');
   const checkpoint=v55ReadCheckpoint(account);
-  const remoteRaw=remote?JSON.stringify(remote.items):null;
-  let download=false;
-  let uploadChanges=false;
-  if(remote&&v55Fingerprint(before.raw)!==v55Fingerprint(remoteRaw)){
-   if(checkpoint){
-    const localUnchanged=await v55Digest(v55Fingerprint(before.raw))===checkpoint.digest;
-    const remoteUnchanged=remote.revision===checkpoint.revision&&
-      await v55Digest(v55Fingerprint(remoteRaw))===checkpoint.digest;
-    if(!current())return;
-    if(v55Local().raw!==before.raw){queueMicrotask(loadCloudCollection);return;}
-    download=localUnchanged&&remote.revision>checkpoint.revision;
-    uploadChanges=remoteUnchanged;
-   }else{
-    download=!before.items.length||v55IncludesOnlyAdditions(before.items,remote.items);
-    uploadChanges=v55IncludesOnlyAdditions(remote.items,before.items);
-   }
-   if(!download&&!uploadChanges){
-    v55Status('This device has '+before.items.length+' saved records and the cloud has '+remote.items.length+'. Review the two copies before merging.');
+  if(!remote&&checkpoint)throw Error('Cloud snapshot is missing. Your device copy is safe.');
+  if(remote&&checkpoint&&remote.revision<checkpoint.revision)throw Error('Cloud revision is older than the last synced copy.');
+  if(!remote&&!before.items.length){
+   v55Status('Your first saved collectible will sync automatically.');
+   return;
+  }
+  const localFingerprint=v55Fingerprint(before.raw);
+  const remoteFingerprint=remote?v55Canonical(remote.items):null;
+  let items=before.items;
+  if(remote&&localFingerprint!==remoteFingerprint){
+   const [localDigest,remoteDigest]=checkpoint?await Promise.all([
+    v55Digest(localFingerprint),v55Digest(remoteFingerprint),
+   ]):[null,null];
+   if(!before.items.length&&!checkpoint)items=remote.items;
+   else if(checkpoint&&localDigest===checkpoint.digest)items=remote.items;
+   else if(checkpoint&&remoteDigest===checkpoint.digest)items=before.items;
+   else if(!checkpoint?.records&&before.items.length&&!remote.items.length)items=null;
+   else items=await v55Merge(before.items,remote.items,checkpoint?.records);
+   if(!items){
+    if(current())v55Status('Sync needs review for conflicting records. This device has '+before.items.length+' records and the cloud has '+remote.items.length+'.',true);
     return;
    }
   }
-  if(!remote&&checkpoint)throw Error('Cloud snapshot is missing. Compare or restore a backup before continuing.');
-  if(!remote&&!before.items.length){
-   v55Status('Your first saved collectible will be backed up automatically.');
+  if(!current())return;
+  if(v55Local().raw!==before.raw){retry=true;return;}
+  const nextRaw=JSON.stringify(items);
+  const nextFingerprint=v55Fingerprint(nextRaw);
+  let revision=remote?.revision||0;
+  if(nextFingerprint!==remoteFingerprint){
+   // Bind the device copy before uploading and preserve it if a cloud write fails.
+   localStorage.setItem(COLLECTION_OWNER,account);
+   revision=await v55Write(items,revision);
+   if(!current())return;
+  }
+  if(v55Local().raw!==before.raw){
+   // The intervening edit was based on the pre-request device copy.
+   await v55SaveCheckpoint(account,revision,localFingerprint);
+   retry=true;
    return;
   }
-  let revision=remote?.revision;
-  if(!remote){
-   localStorage.setItem(COLLECTION_OWNER,account);
-   revision=await v55Write(before.items,0);
-   if(!current())return;
-  }else if(download){
-   v55RestoreWithBackup(account,before,remoteRaw,checkpoint?.revision||0);
-  }
-  localStorage.setItem(COLLECTION_OWNER,account);
-  v55Rev=revision;
-  v55Baseline=v55Fingerprint(remoteRaw||before.raw);
-  v55Timer=setInterval(v55Tick,15000);
-  void v55SaveCheckpoint(account,revision,v55Baseline);
-  if(download){
+  if(nextFingerprint!==localFingerprint){
+   v55RestoreWithBackup(account,before,nextRaw,remote?.revision||0);
    window.vaultRefreshFromStorage();
    window.dispatchEvent(new Event('vault:collection-updated'));
   }
-  v55Status(!remote?'Collection backed up automatically.':download
-    ?'Loaded '+remote.items.length+' records from your cloud collection.':'Collection sync is active.');
-  if(uploadChanges||v55Fingerprint(v55Local().raw)!==v55Baseline)void v55Tick();
+  localStorage.setItem(COLLECTION_OWNER,account);
+  if(checkpoint?.revision!==revision||!checkpoint.records||nextFingerprint!==remoteFingerprint||nextFingerprint!==localFingerprint)await v55SaveCheckpoint(account,revision,nextFingerprint);
+  if(current())v55Status('Collection synced automatically · '+items.length+' records');
  }catch(e){
-  if(current())v55Status('Automatic sync paused: '+e.message);
+  if(current())v55Status('Sync will retry automatically. '+e.message);
  }finally{
   cloudLoadActive=false;
-  if(uid&&uid!==account)queueMicrotask(loadCloudCollection);
+  if(access&&uid&&(retry||uid!==account))queueMicrotask(loadCloudCollection);
  }
 }
-function v55Pause(message){v55Generation++;if(v55Timer)clearInterval(v55Timer);v55Timer=null;v55Rev=null;v55Baseline=null;if(message)v55Status(message)}
-async function v55Inspect(){const local=v55Local(),remote=await v55Remote();const same=remote&&v55Canonical(remote.items)===v55Canonical(local.items);v55Status(`Device: ${local.items.length} records. Cloud: ${remote?remote.items.length+' records (revision '+remote.revision+')':'no snapshot'}. ${same?'Contents match.':'Contents differ or cloud is empty.'} No data was changed.`);return {local,remote,same}}
-$('v55Inspect').onclick=async()=>{try{await v55Inspect()}catch(e){v55Status('Compare failed: '+e.message)}};
-$('v55Start').onclick=()=>{
- if(!uid)return v55Status('Sign in first.');
- localStorage.removeItem(syncPauseKey(uid));
- return loadCloudCollection();
-};
-$('v55Stop').onclick=()=>{
- if(uid)localStorage.setItem(syncPauseKey(uid),'yes');
+function v55Pause(message){
  cloudLoadGeneration++;
- v55Pause('Safe sync paused. Collection unchanged.');
-};
-window.addEventListener('vault:collection-updated',()=>{if(v55Timer)void v55Tick();else void loadCloudCollection();});
-document.addEventListener('visibilitychange',()=>{if(!document.hidden&&v55Timer)v55Tick()});
-async function v55Tick(){if(v55Busy||!v55Timer)return;v55Busy=true;const generation=v55Generation,account=uid;const current=()=>generation===v55Generation&&account===uid&&v55Timer;try{ensure();const local=v55Local(),remote=await v55Remote();if(!current())return;if(!remote)throw Error('Cloud snapshot disappeared. Sync paused.');const localChanged=v55Fingerprint(local.raw)!==v55Baseline;const remoteChanged=remote.revision!==v55Rev;
-if(localChanged&&remoteChanged)throw Error('Both devices changed. Sync paused to avoid losing edits. Download cloud backup and reconcile manually.');
-if(localChanged){const revision=await v55Write(local.items,v55Rev);if(!current())return;v55Rev=revision;v55Baseline=v55Fingerprint(local.raw);void v55SaveCheckpoint(account,v55Rev,v55Baseline);v55Status('Local edits uploaded safely. Cloud revision '+v55Rev+'.')}
-else if(remoteChanged){
-if(!Array.isArray(remote.items)||!Number.isSafeInteger(remote.revision)||remote.revision<=v55Rev)throw Error('Cloud revision or data invalid.');
-if(!remote.items.every(window.vaultIsBackupRecord))throw Error('Cloud records invalid.');
-const latest=v55Local();if(v55Fingerprint(latest.raw)!==v55Baseline)throw Error('Local edits appeared while syncing.');
-const nextRaw=JSON.stringify(remote.items);
-v55RestoreWithBackup(account,latest,nextRaw,v55Rev);
-v55Baseline=v55Fingerprint(nextRaw);v55Rev=remote.revision;
-void v55SaveCheckpoint(account,v55Rev,v55Baseline);
-if(typeof window.vaultRefreshFromStorage==='function')window.vaultRefreshFromStorage();window.dispatchEvent(new Event('vault:collection-updated'));
-v55Status('Cloud changes applied automatically. Revision '+v55Rev+' ('+remote.items.length+' records). Rollback copy saved on this device.');} 
-}catch(e){if(current())v55Pause('Safe sync paused: '+e.message)}finally{v55Busy=false}}
+ if(v55Timer)clearInterval(v55Timer);
+ v55Timer=null;
+ if(message)v55Status(message);
+}
+window.addEventListener('vault:collection-updated',loadCloudCollection);
+window.addEventListener('online',loadCloudCollection);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)void loadCloudCollection();});
 
 // v5.6: deliberate, preview-first merge; no background merge or silent overwrite.
 let v56Plan=null;
@@ -897,10 +900,10 @@ choices.push({item:x,index,kind,decision:kind==='new'?'add':'cloud'});
 return choices}
 function v56Merged(){const entries=v56Plan.remote.items.map(x=>structuredClone(x));for(const c of v56Plan.choices){if(c.decision==='add'){const item=structuredClone(c.item);if(entries.some(e=>item.id!=null&&String(e.id)===String(item.id)))throw Error('Duplicate record ID; choose a different merge option');entries.push(item);}else if(c.decision==='device'&&c.index!==undefined)entries[c.index]=structuredClone(c.item)}return entries}
 $('v56Review').onclick=async()=>{try{v56PauseIfNeeded();const account=uid;const local=v55Local(),remote=await v55Remote();if(!account||uid!==account)throw Error('Account changed. Start a new review.');if(!remote||!Array.isArray(remote.items)||!Number.isSafeInteger(remote.revision))throw Error('A valid cloud snapshot is required');if(local.items.some(x=>!x||typeof x!=='object')||remote.items.some(x=>!x||typeof x!=='object'))throw Error('Invalid collectible record');v56Plan={local,remote,account,choices:[]};v56Plan.choices=v56Build();v56Render()}catch(e){v56Clear();v55Status('Merge review failed: '+e.message)}};
-function v56PauseIfNeeded(){if(v55Timer)v55Pause('Safe sync paused for merge review.')}
+function v56PauseIfNeeded(){if(cloudLoadActive)throw Error('Sync is in progress. Try again in a moment.');}
 function v56Render(){v56Panel.hidden=false;v56Panel.replaceChildren();const plan=v56Plan;const title=document.createElement('h3');title.textContent='Merge review — nothing saved yet';v56Panel.append(title);const summary=document.createElement('p');summary.className='v54-note';summary.textContent=`Device: ${plan.local.items.length} · Cloud: ${plan.remote.items.length} · Revision: ${plan.remote.revision}. Cloud items are retained by default. Review every device-only or conflicting record.`;v56Panel.append(summary);
 for(const [i,c] of plan.choices.entries()){const row=document.createElement('div');row.style.cssText='padding:12px 0;border-top:1px solid #66502b';const heading=document.createElement('strong');heading.textContent=(c.item.name||'Unnamed collectible')+' — '+c.kind;row.append(heading);const select=document.createElement('select');select.style.cssText='display:block;max-width:100%;margin-top:8px';const options=c.kind==='new'?[['add','Add device item'],['skip','Skip device item']]:c.kind==='conflict'?[['cloud','Keep cloud version'],['device','Use device version']]:[['cloud','Keep cloud item (skip possible duplicate)'],['add','Add as separate collectible']];for(const [val,label] of options){const opt=document.createElement('option');opt.value=val;opt.textContent=label;select.append(opt)}select.value=c.decision;select.onchange=()=>{c.decision=select.value;v56UpdateCount()};row.append(select);if(c.index!==undefined){const note=document.createElement('p');note.className='v54-note';note.textContent='Cloud match: '+(plan.remote.items[c.index]?.name||'Unnamed collectible');row.append(note)}v56Panel.append(row)}
-const count=document.createElement('p');count.id='v56Count';v56Panel.append(count);const actions=document.createElement('div');actions.className='v54-actions';actions.append(v56Button('Download both backups',()=>{v56Backup(plan.local.items,'device-before-merge');v56Backup(plan.remote.items,'cloud-before-merge');v55Status('Backup downloads started. Verify both files are saved before applying.')}));actions.append(v56Button('Apply reviewed merge',v56Apply));actions.append(v56Button('Cancel',v56Clear));v56Panel.append(actions);v56UpdateCount()}
+const count=document.createElement('p');count.id='v56Count';v56Panel.append(count);const actions=document.createElement('div');actions.className='v54-actions';actions.append(v56Button('Download both backups',()=>{v56Backup(plan.local.items,'device-before-merge');v56Backup(plan.remote.items,'cloud-before-merge');v55Status('Backup downloads started. Verify both files are saved before applying.')}));actions.append(v56Button('Apply reviewed merge',v56Apply));actions.append(v56Button('Cancel',()=>{v56Clear();void loadCloudCollection();}));v56Panel.append(actions);v56UpdateCount()}
 function v56UpdateCount(){const count=$('v56Count');if(count)count.textContent='Proposed result: '+v56Merged().length+' records. Review duplicate choices carefully.'}
 async function v56Apply(){if(!v56Plan)return;const plan=v56Plan;try{ensure();if(plan.account!==uid)throw Error('Account changed. Start a new review.');const latest=v55Local();if(v55Canonical(latest.items)!==v55Canonical(plan.local.items))throw Error('Device collection changed. Start a new review.');const current=await v55Remote();if(plan.account!==uid||v56Plan!==plan)throw Error('Account changed. Start a new review.');if(!current||current.revision!==plan.remote.revision||v55Canonical(current.items)!==v55Canonical(plan.remote.items))throw Error('Cloud changed. Start a new review.');const merged=v56Merged();
 if(!confirm(`Apply reviewed merge with ${merged.length} records? This updates cloud revision ${current.revision} and this device. Verify your JSON backups first. Other devices must compare again.`))return;
@@ -908,16 +911,13 @@ if(!confirm(`Apply reviewed merge with ${merged.length} records? This updates cl
 const next=await v55Write(merged,current.revision);
 if(plan.account!==uid||v56Plan!==plan)return;
 try{localStorage.setItem(COLLECTION_OWNER,plan.account);localStorage.setItem(K,JSON.stringify(merged))}catch(err){v56Clear();throw Error('Cloud updated to revision '+next+', but device storage failed. Do not retry blindly; download cloud backup and reload. '+err.message)}
-v56Clear();if(typeof window.vaultRefreshFromStorage==='function')window.vaultRefreshFromStorage();window.dispatchEvent(new Event('vault:collection-updated'));v55Status('Merge saved to cloud revision '+next+' and this device ('+merged.length+' records). Collection Library refreshed. Safe sync remains paused on other devices.');
+await v55SaveCheckpoint(plan.account,next,v55Canonical(merged));
+v56Clear();if(typeof window.vaultRefreshFromStorage==='function')window.vaultRefreshFromStorage();window.dispatchEvent(new Event('vault:collection-updated'));v55Status('Merge saved to cloud revision '+next+' and this device ('+merged.length+' records). Automatic sync will continue.');
 }catch(e){v55Status('Merge NOT completed: '+e.message);v56Clear()}}
 
-// Existing manual upload/download must not run concurrently with safe sync.
-const oldUpload=$('v54Upload').onclick,oldDownload=$('v54Download').onclick;
-$('v54Upload').onclick=async()=>{if(v55Timer)return v55Status('Pause safe sync before manually replacing a cloud snapshot.');return oldUpload()};
-$('v54Download').onclick=async()=>{if(v55Timer)return v55Status('Pause safe sync before downloading a manual snapshot.');return oldDownload()};
 const oldSignOut=$('v54SignOut').onclick,oldSignIn=$('v54SignIn').onclick;
-$('v54SignOut').onclick=async()=>{v55Pause('Safe sync paused on sign out.');return oldSignOut()};
-$('v54SignIn').onclick=async()=>{v55Pause('Safe sync paused until you compare collections.');return oldSignIn()};
+$('v54SignOut').onclick=async()=>{v55SigningOut=true;v55Pause('Signing out…');try{await oldSignOut();}finally{v55SigningOut=false;}};
+$('v54SignIn').onclick=async()=>{v55Pause('Connecting to your cloud collection…');return oldSignIn()};
 
 })();
 </script>
@@ -1065,7 +1065,7 @@ async function autoPrice(){
  if(busy)return;busy=true;el('v60AutoPrice').disabled=true;
  const out=el('v60PriceStatus');
  try{
-  if(window.vaultSyncActive?.()){out.textContent='Pause Automatic Safe Sync before updating prices, then make a backup.';return}
+
   const s=state(),policy=el('v60Policy').value;
   const candidates=s.priced.filter(x=>policy==='all'||!(Number(x.estimate)>0));
   if(!candidates.length){out.textContent='No eligible Pokémon cards need quotes. Other collectible categories currently lack a configured automated valuation provider. No values changed.';return}
@@ -1077,7 +1077,7 @@ async function autoPrice(){
   }
   if(!results.length){out.textContent='No valid quotes returned. Nothing changed.\n'+failures.slice(0,6).join('\n');return}
   out.textContent='Fetched '+results.length+' quote(s). Review the confirmation before applying.';
-  if(!confirm('Apply '+results.length+' fetched market quote(s) to your local collection? Existing records will be backed up automatically. Changes may sync later when you re-enable Safe Sync.'))return;
+  if(!confirm('Apply '+results.length+' fetched market quote(s) to your local collection? Existing records will be backed up automatically. Changes will sync automatically.'))return;
   const latest=state();
   const ids=new Map(results.map(x=>[x.id,x]));
   const next=latest.records.map(item=>{
@@ -1111,7 +1111,7 @@ el('v60Interval').onchange=()=>{
 el('v60Interval').value=localStorage.getItem('vault-v60-auto-check')==='daily'?'daily':'off';
 let lastCheck=0;
 setInterval(()=>{
- if(document.hidden||busy||el('v60Interval').value!=='daily'||window.vaultSyncActive?.())return;
+ if(document.hidden||busy||el('v60Interval').value!=='daily')return;
  const last=Number(localStorage.getItem('vault-v60-last-check')||0);
  if(Date.now()-last<86400000)return;
  localStorage.setItem('vault-v60-last-check',String(Date.now()));
@@ -1190,7 +1190,7 @@ function validQuote(q,item){
 $('v61Fetch').onclick=async()=>{
  if(busy)return;
  reset();
- if(window.vaultSyncActive?.()){status('Pause Safe Sync before requesting valuations.');return}
+
  let url;try{url=endpoint()}catch(e){status('Connect a licensed pricing provider first. '+e.message);return}
  const records=read().filter(x=>x.status==='Owned'),result=[];if(!records.length){status('No owned collectibles to value.');return}
  if(records.length>250){status('This beta supports up to 250 items per valuation scan.');return}
@@ -1223,7 +1223,7 @@ $('v61Fetch').onclick=async()=>{
  finally{busy=false;$('v61Fetch').disabled=false}
 };
 $('v61Apply').onclick=()=>{
- if(window.vaultSyncActive?.()){status('Pause Safe Sync before applying valuations.');return}
+
  const selected=new Set([...document.querySelectorAll('#v61Results input[data-quote-id]:checked')].map(x=>x.dataset.quoteId));
  if(!selected.size){status('No quotes selected.');return}
  const original=read();
@@ -1303,7 +1303,7 @@ if(!Number.isFinite(q.marketValue)||q.marketValue<=0||q.marketValue>10000000)ret
 if(!Number.isFinite(Date.parse(q.observedAt))||Date.parse(q.observedAt)>Date.now()+86400000||Date.parse(q.observedAt)<Date.now()-366*86400000)return false;
 return ['name','category','identifier','variant','condition'].every(k=>norm(q[k==='name'?'itemName':k])===norm(item[k]))&&typeof q.source==='string'&&q.source.length>2&&Number(q.sampleSize)>=1};
 let running=false;
-async function run(auto=false){if(running)return;if(window.vaultSyncActive?.()){status('Price check paused: Automatic Safe Sync is active. Pause Safe Sync first to avoid revision conflicts.');return}
+async function run(auto=false){if(running)return;
 let raw,all;try{raw=localStorage.getItem(KEY)||'[]';all=get()}catch(e){status(e.message);return}
 const list=owned(all).filter(eligible);if(!list.length){status('No eligible Pokémon cards found. Other collectible categories await pricing providers.');return}
 let url;try{url=new URL(localStorage.getItem(EP)||$('v61Endpoint')?.value||'');if(url.protocol!=='https:'||url.username||url.password||url.search||url.hash)throw Error('Invalid provider URL')}catch{status('Set a valid HTTPS pricing endpoint in Multi-Source Auto Valuation Lab first.');return}
@@ -1315,7 +1315,7 @@ try{response=await fetch(url.toString(),{method:'POST',headers:{'Content-Type':'
 if(!response.ok)throw Error('Pricing service returned HTTP '+response.status);
 const body=await response.json();if(!Array.isArray(body.quotes))throw Error('Pricing service returned no valid quote list');
 const map=new Map(),byId=new Map(list.map(x=>[x.id,x]));for(const q of body.quotes){const item=byId.get(q?.id);if(item&&!map.has(q.id)&&checkQuote(q,item))map.set(q.id,q)}
-if(window.vaultSyncActive?.()||localStorage.getItem(KEY)!==raw){status('Collection or sync state changed during the request. No prices were written. Try again after comparing cloud and device.');return}
+if(localStorage.getItem(KEY)!==raw){status('Collection changed during the request. No prices were written. Try again.');return}
 const protect=$('v70Protect').checked,updates=[];
 const next=all.map(x=>{const q=map.get(x.id);if(!q||!eligible(x)||x.pricing?.manualOverride)return x;
 if(protect&&x.pricing?.source&&x.pricing.source!=='TCGplayer via TCGdex'&&x.pricing.source!=='tcgdex')return x;
@@ -1472,7 +1472,7 @@ panel.innerHTML=`<h2>✦ Free Collection Estimates · All Nine Galleries</h2>
 <label><input id="v82CostOnly" type="checkbox" checked> Only estimate items with a recorded purchase price (recommended)</label>
 <div class="v82buttons"><button class="btn" id="v82Preview" type="button">Preview missing estimates</button><button class="btn secondary" id="v82Apply" type="button" disabled>Apply reviewed estimates</button></div>
 <p id="v82Report" role="status">Nothing has been changed.</p><div id="v82Details" class="v82stats"></div>
-<p>Works offline. No provider requests are made by this feature. Pause Safe Sync before applying; your previous collection will be downloaded as a backup.</p>`;
+<p>Works offline. No provider requests are made by this feature. Your previous collection will be downloaded as a backup before applying.</p>`;
 const hub=$('v81Hub');if(hub)hub.insertAdjacentElement('afterend',panel);else document.querySelector('main')?.prepend(panel);
 const baseline={'Funko Pops':18,'Action Figures':25,'Hot Toys':220,'Comic Books':8,'Video Games':22,'Video Game Consoles':110,'LEGO':50,'Books':12,'Movies':12};
 let pending=[],snapshot='';
@@ -1504,7 +1504,7 @@ function preview(){
 $('v82Preview').onclick=preview;
 $('v82CostOnly').onchange=()=>{pending=[];$('v82Apply').disabled=true;$('v82Report').textContent='Settings changed. Preview again.'};
 $('v82Apply').onclick=()=>{
- if(window.vaultSyncActive?.()){$('v82Report').textContent='Pause Automatic Safe Sync before applying.';return;}
+
  if((localStorage.getItem(KEY)||'[]')!==snapshot){$('v82Report').textContent='Collection changed since preview. Preview again.';pending=[];$('v82Apply').disabled=true;return;}
  if(!confirm('Apply '+pending.length+' approximate NON-MARKET estimates? Existing values will not change.'))return;
  const old=JSON.parse(snapshot),byId=new Map(pending.map(x=>[x.id,x]));
@@ -2574,7 +2574,7 @@ body.v13-app>#v101fig,body.v13-app>#v103{display:none!important}
   <div class="v13-metrics"><div class="v13-metric"><small class="v13-muted">Collectibles</small><b id="v13count">0</b></div><div class="v13-metric"><small class="v13-muted">Wishlist</small><b id="v13wish">0</b></div></div>
   <button class="v13-primary" id="v13homeadd">＋ Add a collectible</button>
  </div>
- <div class="v13-screen" data-v13screen="collection"><div class="v13-eyebrow">Private archive</div><h1 class="v13-heading">My Collection</h1><p class="v13-muted">Your saved pieces and personal inventory.</p><div class="v13-hero"><div class="v13-muted" id="v13CollectionValueLabel">Collection estimate</div><div class="v13-value" id="v13CatalogTotal">—</div><div class="v13-muted" id="v13CatalogCoverage" aria-live="polite"></div></div><p id="v13SyncStatus" class="v13-muted" role="status">Sign in on both devices to sync your collection.</p><button id="v13ReviewSync" type="button" class="v13-quiet">Compare device and cloud</button><div id="v13library" class="v13-host"></div></div>
+ <div class="v13-screen" data-v13screen="collection"><div class="v13-eyebrow">Private archive</div><h1 class="v13-heading">My Collection</h1><p class="v13-muted">Your saved pieces and personal inventory.</p><div class="v13-hero"><div class="v13-muted" id="v13CollectionValueLabel">Collection estimate</div><div class="v13-value" id="v13CatalogTotal">—</div><div class="v13-muted" id="v13CatalogCoverage" aria-live="polite"></div></div><p id="v13SyncStatus" class="v13-muted" role="status">Sign in on both devices to sync your collection.</p><button hidden id="v13ReviewSync" type="button" class="v13-quiet">Compare device and cloud</button><div id="v13library" class="v13-host"></div></div>
  <div class="v13-screen" data-v13screen="discover"><div class="v13-eyebrow">Explore</div><h1 class="v13-heading">Discover collectibles</h1><p class="v13-muted">Search figures, LEGO, cards and comics inside THE VAULT.</p><button class="v13-primary" id="v13search">⌕ Find & add collectibles</button><button class="v13-quiet" id="v13manualadd" type="button" style="width:100%;margin:0 0 12px">＋ Add manually</button><div class="v13-card"><h3>Find photos, names, and editions</h3><p class="v13-muted">Search across available catalogs in one place. Results show product names and photos where the source provides them.</p><div id="v13catalognotice">Catalog matches fill in available photos and listed prices.</div></div></div>
  <div class="v13-screen" data-v13screen="wishlist"><div class="v13-eyebrow">Future treasures</div><h1 class="v13-heading">Wishlist</h1><div class="v13-card"><h3>Collect what you love</h3><p class="v13-muted">Wishlist items are kept with your collection records. Open Collection to browse and filter them.</p><button class="v13-quiet" id="v13wishbrowse">Browse collection</button></div></div>
  <div class="v13-screen" data-v13screen="settings"><div class="v13-eyebrow">Your account</div><h1 class="v13-heading">Settings</h1><div class="v13-card"><h3>Membership</h3><p>Vault Free · $0 · Unlimited collection tracking</p><p>Vault Pro · $19.99 per month · Coming soon</p></div><div class="v13-card"><h3>Private by design</h3><p class="v13-muted">Completed edits save automatically on this device. When signed in, your collection syncs automatically while the app is open.</p></div><div id="v13settings"><details><summary>Cloud account & backups</summary><div id="v13cloud" class="v13-host"></div><div id="v13backup" class="v13-host"></div></details></div></div>
@@ -2595,7 +2595,7 @@ body.v13-app>#v101fig,body.v13-app>#v103{display:none!important}
  if($('v55Status')?.textContent&&window.vaultHasCloudSession?.())$('v13SyncStatus').textContent=$('v55Status').textContent;
  $('v13ReviewSync').onclick=()=>{
   tab('settings');
-  const compare=$('v55Inspect');
+  const compare=$('v56Review');
   for(let parent=compare?.parentElement;parent;parent=parent.parentElement){
    if(parent.tagName==='DETAILS')parent.open=true;
   }
