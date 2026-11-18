@@ -62,6 +62,10 @@ jobs:
               python tools/import_marvel_legends.py --url 'https://legendsverse.com/checklist/marvel-legends/figures' --output output/marvel-legends.json || echo 'Marvel Legends unavailable; no bypass attempted'
               python tools/import_sideshow.py --pages "$PAGES" --output output/sideshow-catalog.json || echo 'Sideshow unavailable; no bypass attempted'
               python tools/import_big_toes.py --output output/big-toes-catalog.json || echo 'Big Toes catalog unavailable'
+              for store in replay toyco galactic toydojo; do
+                (python tools/import_big_toes.py --store "$store" --output "output/$store-catalog.json" || echo "$store catalog unavailable") &
+              done
+              wait
               python tools/import_cardcollector2.py --output output/cardcollector2-catalog.json || echo 'CardCollector2 catalog unavailable'
               python tools/import_bbts.py --hot-toys --output output/hot-toys-catalog.json || echo 'Hot Toys catalog unavailable'
               python tools/import_bbts.py --output output/bbts-catalog.json || echo 'BBTS unavailable; no bypass attempted'
@@ -121,7 +125,7 @@ jobs:
           import json
           from pathlib import Path
           root=Path('website')
-          names={'big-toes':'big-toes-catalog.json','funko':'funko-catalog.json','marvel-legends':'marvel-legends.json','sideshow':'sideshow-catalog.json','bbts':'bbts-catalog.json','hot-toys':'hot-toys-catalog.json','cardcollector2':'cardcollector2-catalog.json','hasbro':'hasbro-catalog.json','mcfarlane':'mcfarlane-catalog.json','mephitsu':'mephitsu-catalog.json','pokemon':'pokemon-catalog.json'}
+          names={'replay':'replay-catalog.json','toyco':'toyco-catalog.json','galactic':'galactic-catalog.json','toydojo':'toydojo-catalog.json','big-toes':'big-toes-catalog.json','funko':'funko-catalog.json','marvel-legends':'marvel-legends.json','sideshow':'sideshow-catalog.json','bbts':'bbts-catalog.json','hot-toys':'hot-toys-catalog.json','cardcollector2':'cardcollector2-catalog.json','hasbro':'hasbro-catalog.json','mcfarlane':'mcfarlane-catalog.json','mephitsu':'mephitsu-catalog.json','pokemon':'pokemon-catalog.json'}
           status={
               'lego': {'available': True, 'count': len(json.loads((root/'lego-catalog.json').read_text()))},
               'historical-funko': {'available': True, 'count': len(json.loads((root/'historical-funko.json').read_text()))},

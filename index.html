@@ -1932,21 +1932,37 @@ async function searchPlayer(name,sport,token) {
 
 function deduplicateCatalogResults(results){
  const normalize=value=>String(value??'').normalize('NFKC').trim().replace(/\s+/g,' ').toLowerCase();
+ const urlKey=row=>{
+  try{const url=new URL(row.sourceUrl);return url.origin+url.pathname.replace(/\/$/,'');}
+  catch{return '';}
+ };
+ const importedProducts=new Set(results.filter(row=>row.catalogVariant).map(urlKey).filter(Boolean));
  const grouped=new Map();
  for(const row of results){
-  if(!row.name)continue;
-  const {category,identifier,name,variant,source}=row;
-  // Catalog IDs are provider-specific except for LEGO set numbers and Hot Toys model codes.
+  if(!row.name||(row.storefront&&importedProducts.has(urlKey(row))))continue;
+  const {category,identifier,name,variant,source,gtin,brand}=row;
   const sharedId=category==='LEGO'&&/^\d+-\d+$/.test(identifier)||
     category==='Hot Toys'&&/^(?:mms|tms|dx|vpm)\d+[a-z0-9-]*$/i.test(identifier);
-  const key=JSON.stringify((sharedId?[category,identifier,variant]:[category,name,identifier,variant,identifier?source:'']).map(normalize));
+  const condition=normalize(name+' '+(variant||'')).match(/\b(?:damaged|loose|used|opened|unboxed|preowned|pre-owned|signed|autographed|graded|box only|chase|prototype|exclusive|reissue|repaint|glow)\b/g)||[];
+  const brandedRetail=row.catalogVariant&&normalize(brand)&&normalize(name).split(' ').length>=4;
+  const keyParts=gtin?[category,'gtin',String(gtin).padStart(14,'0'),variant,...new Set(condition.sort())]:
+    sharedId?[category,identifier,variant]:
+    brandedRetail?[category,'retail-edition',brand,name,variant]:
+    [category,name,identifier,variant,identifier?source:''];
+  const key=JSON.stringify(keyParts.map(normalize));
   const previous=grouped.get(key);
-  const score=item=>Number(item.retailPrice>0||item.marketPrice>0)*2+Number(Boolean(item.image));
-  if(!previous||score(row)>score(previous))grouped.set(key,row);
+  const score=item=>Number(item.retailPrice>0||item.marketPrice>0)*4+Number(Boolean(item.image))*2+Number(item.available===true);
+  if(!previous){grouped.set(key,row);continue;}
+  const sameScore=score(row)===score(previous);
+  const betterRetail=sameScore&&row.retailPrice>0&&previous.retailPrice>0&&row.retailPrice<previous.retailPrice;
+  const primary=score(row)>score(previous)||betterRetail?row:previous;
+  const sources=[...new Set([previous.source,...(previous.alsoFrom||[]),row.source])].filter(value=>value&&value!==primary.source);
+  grouped.set(key,{...primary,alsoFrom:sources});
  }
  return [...grouped.values()];
 }
 
+const storefrontCatalogs=new Map();
 let seq=0;
 async function search(){
  const q=$('v11q').value.trim(),token=++seq;
@@ -2000,21 +2016,32 @@ async function search(){
  }
  const requests=[];
  if(!tcdbPath)requests.push(findCardCollector2(q).catch(()=>{notices.push('CardCollector2 catalog unavailable');return []}));
- if(!tcdbPath)requests.push((async()=>{
-  try {
-   if(!window.vaultBigToesCatalog){
-    window.vaultBigToesCatalog=fetch('./big-toes-catalog.json',{signal:AbortSignal.timeout(8000)})
-      .then(response=>{if(!response.ok)throw Error();return response.json()})
-      .then(catalog=>{
-       if(catalog.schema!=='vault-bigtoes-v1'||!Array.isArray(catalog.items))throw Error();
-       return catalog;
-      })
-      .catch(error=>{window.vaultBigToesCatalog=null;throw error});
+ for(const [file,source,schema] of [
+  ['big-toes','Big Toes Collectibles','vault-bigtoes-v1'],
+  ['replay','Replay Toys','vault-storefront-catalog-v1'],
+  ['toyco','Toyco','vault-storefront-catalog-v1'],
+  ['galactic','Galactic Toys','vault-storefront-catalog-v1'],
+  ['toydojo','Toy Dojo','vault-storefront-catalog-v1'],
+ ]){
+  if(tcdbPath)break;
+  requests.push((async()=>{
+   try {
+    if(!storefrontCatalogs.has(file)){
+     storefrontCatalogs.set(file,fetch('./'+file+'-catalog.json',{signal:AbortSignal.timeout(8000)})
+       .then(response=>{if(!response.ok)throw Error();return response.json()})
+       .then(catalog=>{
+        if(catalog.schema!==schema||!Array.isArray(catalog.items))throw Error();
+        return catalog;
+       }).catch(error=>{storefrontCatalogs.delete(file);throw error}));
+    }
+    const catalog=await storefrontCatalogs.get(file);
+    return catalog.items.filter(matches).map(item=>({...item,checkedAt:catalog.checkedAt,catalogVariant:true}));
+   }catch{
+    if(file!=='replay'&&file!=='toyco')notices.push(source+' catalog unavailable');
+    return [];
    }
-   const {items,checkedAt}=await window.vaultBigToesCatalog;
-   return items.filter(matches).map(item=>({...item,checkedAt}));
-  }catch{notices.push('Big Toes Collectibles catalog unavailable');return []}
- })());
+  })());
+ }
  if(!tcdbPath)requests.push((async()=>{
   try {
    const response=await fetch('/api/catalog/storefronts?'+new URLSearchParams({q}),{signal:AbortSignal.timeout(8500)});
@@ -2235,7 +2262,7 @@ async function search(){
   if(x.image&&/^(?:https:\/\/[^\s"'<>]+|catalog-images\/[a-z0-9_.-]+)$/i.test(x.image)){const img=document.createElement('img');img.src=x.image;img.alt=x.name+' product photo';img.loading='lazy';img.decoding='async';img.referrerPolicy='no-referrer';img.onerror=()=>{img.remove();const fallback=document.createElement('div');fallback.style.cssText='height:190px;display:flex;align-items:center;justify-content:center;background:#352b20;color:#cdbd9d;text-align:center;border-radius:8px;padding:12px';fallback.textContent='Photo unavailable from catalog';card.prepend(fallback)};card.appendChild(img)}
   if(!card.querySelector('img')){const fallback=document.createElement('div');fallback.className='vault-photo-missing';fallback.textContent='Photo not available';card.appendChild(fallback)}
   const title=document.createElement('strong');title.textContent=x.category==='Funko Pops'&&/Mystery Minis/i.test(x.variant||'')&&!/Mystery Minis/i.test(x.name)?x.name+' (Mystery Minis)':x.name;card.appendChild(title);
-  const desc=document.createElement('div');desc.className='v11sub';desc.textContent=[x.category,x.brand,x.series,x.number?'#'+x.number:'',x.variant,x.source,x.available===false?'Sold out':''].filter(Boolean).join(' · ');card.appendChild(desc);
+  const desc=document.createElement('div');desc.className='v11sub';desc.textContent=[x.category,x.brand,x.series,x.number?'#'+x.number:'',x.variant,x.source,x.alsoFrom?.length?'Also at '+x.alsoFrom.join(', '):'',x.available===false?'Sold out':''].filter(Boolean).join(' · ');card.appendChild(desc);
   if(x.sourceUrl&&x.source.startsWith('Grand Comics Database')){
    const source=document.createElement('a');source.href=x.sourceUrl;source.target='_blank';source.rel='noopener';source.textContent='Series source';source.className='v11sub';card.appendChild(source);
   }
