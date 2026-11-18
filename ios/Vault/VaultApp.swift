@@ -140,6 +140,11 @@ final class VaultSession: NSObject, ObservableObject, WKNavigationDelegate {
                 return false;
             }
             add.click();
+            const sport = document.querySelector('select[aria-label="Search sports cards by player and sport"]');
+            if (sport) sport.value = '';
+            const filters = document.getElementById('v12filters');
+            const all = Array.from(filters?.children ?? []).find(button => button.textContent.trim() === 'All');
+            if (all?.getAttribute('aria-pressed') !== 'true') all?.click();
             input.value = code;
             search.click();
             return true;
