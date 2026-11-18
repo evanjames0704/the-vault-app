@@ -81,13 +81,19 @@ def main():
     else:
         from catalog_pages import listing_pages
         pages = listing_pages(args.url)
+    from apply_marvel_legends_retail import apply_prices, collect_prices
+    from urllib.parse import parse_qs
     merged={}
+    pricing_pages=[]
     for html,url in pages:
         for item in parse(html,url): merged[item["sourceUrl"]]=item
+        expected_page = int(parse_qs(urlparse(url).query).get("page", ["1"])[0]) if args.url else None
+        pricing_pages.append((html, expected_page))
     if not merged:
         sys.exit("No figure records recognized. Site markup may require an importer update; no output written.")
+    matched = apply_prices(merged.values(), collect_prices(pricing_pages))
     output={"schema":"vault-marvel-legends-v1","count":len(merged),"items":sorted(merged.values(),key=lambda x:x["name"].lower())}
     args.output.parent.mkdir(parents=True,exist_ok=True)
     args.output.write_text(json.dumps(output,ensure_ascii=False,indent=2),encoding="utf-8")
-    print(f"Imported {len(merged)} records to {args.output}; inspect names and images before deployment.")
+    print(f"Imported {len(merged)} records to {args.output}, including {matched} original retail prices; inspect names and images before deployment.")
 if __name__=="__main__":main()
