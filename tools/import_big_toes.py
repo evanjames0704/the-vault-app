@@ -9,6 +9,7 @@ from pathlib import Path
 from urllib.parse import quote
 
 STORES = {
+    "emerald": ("Emerald City Comics", "https://emeraldcitycomics.com"),
     "bigtoes": ("Big Toes Collectibles", "https://bigtoescollectibles.com"),
     "replay": ("Replay Toys", "https://replaytoys.com"),
     "toyco": ("Toyco", "https://www.toyco.store"),
@@ -19,6 +20,12 @@ STORES = {
 
 def category(title, product_type):
     text = f"{product_type} {title}".casefold()
+    if product_type.casefold() in {"comics", "vintage back issues", "back issues", "graphic novels"}:
+        return "Comic books"
+    if product_type.casefold() == "books":
+        if re.search(r"\b(?:tp|tpb|gn|omnibus|manga|graphic novel)\b", title, re.I):
+            return "Comic books"
+        return "Books"
     for terms, name in [
         (r"\bfunko pop\b", "Funko Pops"),
         (r"\bhot toys\b", "Hot Toys"),

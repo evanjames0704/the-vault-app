@@ -5,6 +5,7 @@ from collections import defaultdict
 from pathlib import Path
 
 SOURCES = (
+    ("emerald-catalog", "Emerald City Comics", ""),
     ("replay-catalog", "Replay Toys", ""),
     ("toyco-catalog", "Toyco", ""),
     ("galactic-catalog", "Galactic Toys", ""),
