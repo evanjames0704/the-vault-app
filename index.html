@@ -649,12 +649,14 @@ const $=id=>document.getElementById(id), K='the-vault-v1', PREFIX='vault-cloud-v
 const VAULT_PROJECT_URL='https://rlkasocmrobqzxgimijg.supabase.co';
 const VAULT_PUBLISHABLE_KEY='sb_publishable_b2qpf48zTRLx8zIqqNMp3Q_gzniQxqF';
 const AUTO_SYNC_PREFERENCE='vault-safe-sync-v1';
+const COLLECTION_OWNER='vault-collection-cloud-owner';
+const syncPauseKey=account=>'vault-sync-paused:'+account;
 let access=null, uid=null, refreshToken=null, expiresAt=0;
 const SESSION_KEY=PREFIX+'session-v2';
-let cloudLoadGeneration=0;
+let cloudLoadGeneration=0, cloudLoadActive=false;
 function clearSession(){cloudLoadGeneration++;access=null;uid=null;refreshToken=null;expiresAt=0;localStorage.removeItem(SESSION_KEY)}
 function saveSession(b){if(!b?.access_token||!b?.refresh_token||!b?.user?.id)throw Error('Invalid session response');access=b.access_token;uid=b.user.id;refreshToken=b.refresh_token;expiresAt=Date.now()+Math.max(30,Number(b.expires_in)||3600)*1000;localStorage.setItem(SESSION_KEY,JSON.stringify({access,uid,refreshToken,expiresAt,email:b.user.email||''}));}
-async function refreshSession(){if(!refreshToken)return false;const {url,key}=config();const r=await fetch(url+'/auth/v1/token?grant_type=refresh_token',{method:'POST',headers:{apikey:key,'Content-Type':'application/json'},body:JSON.stringify({refresh_token:refreshToken})});if(!r.ok){clearSession();return false}const b=await r.json();saveSession(b);return true}
+async function refreshSession(){if(!refreshToken)return false;const account=uid,token=refreshToken;const {url,key}=config();const r=await fetch(url+'/auth/v1/token?grant_type=refresh_token',{method:'POST',headers:{apikey:key,'Content-Type':'application/json'},body:JSON.stringify({refresh_token:token})});if(uid!==account||refreshToken!==token)return false;if(!r.ok){clearSession();return false}const b=await r.json();if(uid!==account||refreshToken!==token)return false;saveSession(b);return true}
 async function restoreSession(){try{
  const previousProject=localStorage.getItem(PREFIX+'url');
  localStorage.removeItem(PREFIX+'url');
@@ -664,7 +666,7 @@ async function restoreSession(){try{
 const status=m=>{$('v54Status').textContent=m;window.dispatchEvent(new Event('vault:auth-changed'));};
 window.vaultHasCloudSession=()=>Boolean(access&&uid);
 const config=()=>({url:VAULT_PROJECT_URL,key:VAULT_PUBLISHABLE_KEY});
-async function req(path,opts={}){if(refreshToken&&expiresAt<Date.now()+120000&&!path.startsWith('/auth/v1/'))await refreshSession();const {url,key}=config();const headers={'apikey':key,'Content-Type':'application/json',...(access?{'Authorization':'Bearer '+access}:{'Authorization':'Bearer '+key}),...(opts.headers||{})};const r=await fetch(url+path,{...opts,headers});const t=await r.text();let body;try{body=t?JSON.parse(t):null}catch{body=t}if(!r.ok)throw Error((body&&((body.error_description)||(body.msg)||(body.message)||(body.error)))||('HTTP '+r.status));return body}
+async function req(path,opts={}){const account=uid;if(refreshToken&&expiresAt<Date.now()+120000&&!path.startsWith('/auth/v1/')){if(!await refreshSession()&&(!access||uid!==account))throw Error('Sign in again to continue.');}const {url,key}=config();const headers={'apikey':key,'Content-Type':'application/json',...(access?{'Authorization':'Bearer '+access}:{'Authorization':'Bearer '+key}),...(opts.headers||{})};const r=await fetch(url+path,{...opts,headers});const t=await r.text();let body;try{body=t?JSON.parse(t):null}catch{body=t}if(!r.ok)throw Error((body&&((body.error_description)||(body.msg)||(body.message)||(body.error)))||('HTTP '+r.status));return body}
 const credentials=()=>{const email=$('v54Email').value.trim(),password=$('v54Pass').value;if(!/^\S+@\S+\.\S+$/.test(email)||password.length<12)throw Error('Enter a valid email and password of at least 12 characters.');return {email,password}};
 $('v54SignUp').onclick=async()=>{try{const c=credentials();const b=await req('/auth/v1/signup',{method:'POST',body:JSON.stringify(c)});$('v54Pass').value='';if(b?.access_token){saveSession(b);status('Account created. You are signed in.');void loadCloudCollection()}else{status('Check your email for a confirmation link, then sign in.')}}catch(e){status('Sign-up failed: '+e.message)}};
 $('v54SignIn').onclick=async()=>{try{const c=credentials();const b=await req('/auth/v1/token?grant_type=password',{method:'POST',body:JSON.stringify(c)});if(!b.access_token||!b.user?.id)throw Error('Sign-in did not return a valid session');saveSession(b);$('v54Pass').value='';status('Signed in as '+(b.user.email||c.email)+'. You will stay signed in on this device unless you sign out or clear browser data.');void loadCloudCollection()}catch(e){status('Sign-in failed: '+e.message)}};
@@ -678,13 +680,16 @@ $('v54Upload').onclick=async()=>{try{
   throw Error('Cloud already contains a different collection. Upload blocked to protect both copies. Use Compare device and cloud, then preview a safe merge.');
  }
  if(!confirm('Cloud has no saved collection. Create your first snapshot of '+items.length+' records? Save a JSON backup first.'))return;
+ const account=uid;
  const revision=await v55Write(items,0);
+ if(uid!==account)return;
+ localStorage.setItem(COLLECTION_OWNER,account);
  status('First cloud snapshot created safely ('+items.length+' records, revision '+revision+').');
  }catch(e){status('Safe upload: '+e.message)}
 };
 $('v54Download').onclick=async()=>{try{ensure();const b=await req('/rest/v1/vault_snapshots?select=items,updated_at&user_id=eq.'+encodeURIComponent(uid)+'&limit=1');if(!Array.isArray(b)||!b.length)throw Error('No cloud snapshot exists for this account');if(!Array.isArray(b[0].items))throw Error('Cloud snapshot is invalid');const pack={app:'THE VAULT',version:1,exportedAt:new Date().toISOString(),items:b[0].items};const blob=new Blob([JSON.stringify(pack,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='the-vault-cloud-'+new Date().toISOString().slice(0,10)+'.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);status('Cloud snapshot backup download initiated ('+pack.items.length+' records). Check the file, then use Import Backup if you want to restore. Your current collection was NOT overwritten.')}catch(e){status('Download failed: '+e.message)}};
 void restoreSession().then(loadCloudCollection);
-// v5.5 opt-in, revision-checked synchronization. No destructive automatic first merge.
+// Revision-checked cloud collection synchronization.
 let v55Timer=null,v55Busy=false,v55Rev=null,v55Baseline=null,v55Generation=0;window.vaultSyncActive=()=>!!v55Timer;
 const v55Status=m=>{$('v55Status').textContent=m};
 const v55Local=()=>{const raw=localStorage.getItem(K)||'[]';const items=JSON.parse(raw);if(!Array.isArray(items))throw Error('Local collection is invalid');return {raw,items}};
@@ -693,45 +698,77 @@ const v55Fingerprint=raw=>v55Canonical(JSON.parse(raw));
 async function v55Remote(){ensure();const r=await req('/rest/v1/vault_snapshots?select=items,revision,updated_at&user_id=eq.'+encodeURIComponent(uid)+'&limit=1');if(!Array.isArray(r))throw Error('Unexpected cloud response');return r[0]||null}
 async function v55Write(items,revision){const b=await req('/rest/v1/rpc/vault_sync_write',{method:'POST',body:JSON.stringify({p_items:items,p_expected_revision:revision})});if(typeof b!=='number')throw Error('Unexpected sync response');return b}
 async function loadCloudCollection(){
- if(!access||!uid)return;
+ if(!access||!uid||v55Timer||cloudLoadActive||localStorage.getItem(syncPauseKey(uid)))return;
+ cloudLoadActive=true;
  const account=uid,generation=++cloudLoadGeneration;
+ const current=()=>generation===cloudLoadGeneration&&uid===account&&!v55Timer&&
+   !localStorage.getItem(syncPauseKey(account));
  try{
   const before=v55Local();
-  if(before.items.length)return;
-  const remote=await v55Remote();
-  if(generation!==cloudLoadGeneration||uid!==account||v55Timer)return;
-  if(!remote?.items?.length)return;
-  if(!Array.isArray(remote.items)||!Number.isSafeInteger(remote.revision)||remote.revision<1||
-    !remote.items.every(window.vaultIsBackupRecord))throw Error('Cloud backup contains unsupported records.');
-  const current=v55Local();
-  if(current.items.length||current.raw!==before.raw){
-   v55Status('Device collection changed while loading. Compare device and cloud before restoring.');
+  const owner=localStorage.getItem(COLLECTION_OWNER)||localStorage.getItem(AUTO_SYNC_PREFERENCE);
+  if(before.items.length&&owner&&owner!==account){
+   v55Status('This device collection belongs to another account. Automatic sync paused.');
    return;
   }
-  localStorage.setItem(K,JSON.stringify(remote.items));
-  window.vaultRefreshFromStorage();
-  window.dispatchEvent(new Event('vault:collection-updated'));
-  v55Status('Loaded '+remote.items.length+' records from your cloud collection.');
+  const remote=await v55Remote();
+  if(!current())return;
+  if(v55Local().raw!==before.raw){
+   // A save arrived during lookup. Recheck the newer device copy after this request ends.
+   queueMicrotask(loadCloudCollection);
+   return;
+  }
+  if(remote&&(!Array.isArray(remote.items)||!Number.isSafeInteger(remote.revision)||remote.revision<1||
+    !remote.items.every(window.vaultIsBackupRecord)))throw Error('Cloud backup contains unsupported records.');
+  if(!before.items.every(window.vaultIsBackupRecord))throw Error('Device collection contains unsupported records.');
+  if(remote&&before.items.length&&v55Canonical(before.items)!==v55Canonical(remote.items)){
+   v55Status('Device and cloud collections differ. Both are safe. Review the merge under Cloud account & backups.');
+   return;
+  }
+  if(!remote&&!before.items.length){
+   v55Status('Your first saved collectible will be backed up automatically.');
+   return;
+  }
+  let revision=remote?.revision;
+  let baseline=before.raw;
+  if(!remote){
+   localStorage.setItem(COLLECTION_OWNER,account);
+   const expectedItems=before.items;
+   revision=await v55Write(expectedItems,0);
+   if(!current())return;
+  }else if(!before.items.length&&remote.items.length){
+   baseline=JSON.stringify(remote.items);
+   localStorage.setItem(COLLECTION_OWNER,account);
+   localStorage.setItem(K,baseline);
+   window.vaultRefreshFromStorage();
+   window.dispatchEvent(new Event('vault:collection-updated'));
+  }
+  localStorage.setItem(COLLECTION_OWNER,account);
+  v55Rev=revision;
+  v55Baseline=v55Fingerprint(baseline);
+  v55Timer=setInterval(v55Tick,15000);
+  v55Status(!remote?'Collection backed up automatically.':!before.items.length&&remote.items.length
+    ?'Your cloud collection loaded automatically.':'Collection sync is active.');
  }catch(e){
-  if(generation===cloudLoadGeneration&&uid===account)v55Status('Cloud collection could not be loaded: '+e.message);
+  if(current())v55Status('Automatic sync paused: '+e.message);
+ }finally{
+  cloudLoadActive=false;
+  if(uid&&uid!==account)queueMicrotask(loadCloudCollection);
  }
 }
 function v55Pause(message){v55Generation++;if(v55Timer)clearInterval(v55Timer);v55Timer=null;v55Rev=null;v55Baseline=null;if(message)v55Status(message)}
 async function v55Inspect(){const local=v55Local(),remote=await v55Remote();const same=remote&&v55Canonical(remote.items)===v55Canonical(local.items);v55Status(`Device: ${local.items.length} records. Cloud: ${remote?remote.items.length+' records (revision '+remote.revision+')':'no snapshot'}. ${same?'Contents match.':'Contents differ or cloud is empty.'} No data was changed.`);return {local,remote,same}}
 $('v55Inspect').onclick=async()=>{try{await v55Inspect()}catch(e){v55Status('Compare failed: '+e.message)}};
-$('v55Start').onclick=async()=>{try{if(v55Timer)return v55Status('Safe sync is already enabled.');const {local,remote,same}=await v55Inspect();if(!remote){if(!confirm('No cloud snapshot exists. Create one from this device? Keep a JSON backup first.'))return;v55Rev=await v55Write(local.items,0);v55Baseline=v55Fingerprint(local.raw)}else if(same){v55Rev=remote.revision;v55Baseline=v55Fingerprint(local.raw)}else{v55Status('Device and cloud differ. Safe sync will NOT overwrite either copy. Use your existing cloud download and JSON backup tools to review and reconcile them first.');return}v55Timer=setInterval(v55Tick,15000);localStorage.setItem(AUTO_SYNC_PREFERENCE,uid);v55Status('Automatic safe sync active while this page is open. Revision '+v55Rev+'. Checks approximately every 15 seconds.');}catch(e){v55Pause('Could not enable sync: '+e.message)}};
-$('v55Stop').onclick=()=>{localStorage.removeItem(AUTO_SYNC_PREFERENCE);v55Pause('Safe sync paused. Collection unchanged.')};
-async function v55ResumeIfSafe(){
- if(!uid||localStorage.getItem(AUTO_SYNC_PREFERENCE)!==uid||v55Timer)return;
- try{
-  const {local,remote,same}=await v55Inspect();
-  if(!remote||!same){v55Status('Automatic sync not resumed: device and cloud differ. Compare and merge manually before enabling.');return}
-  v55Rev=remote.revision;v55Baseline=v55Fingerprint(local.raw);v55Timer=setInterval(v55Tick,15000);
-  v55Status('Safe sync resumed. Device and cloud match; checking every 15 seconds while app is open.');
- }catch(e){v55Status('Auto resume skipped: '+e.message)}
-}
-setTimeout(v55ResumeIfSafe,1800);
-
+$('v55Start').onclick=()=>{
+ if(!uid)return v55Status('Sign in first.');
+ localStorage.removeItem(syncPauseKey(uid));
+ return loadCloudCollection();
+};
+$('v55Stop').onclick=()=>{
+ if(uid)localStorage.setItem(syncPauseKey(uid),'yes');
+ cloudLoadGeneration++;
+ v55Pause('Safe sync paused. Collection unchanged.');
+};
+window.addEventListener('vault:collection-updated',()=>{if(!v55Timer)void loadCloudCollection();});
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&v55Timer)v55Tick()});
 async function v55Tick(){if(v55Busy||!v55Timer)return;v55Busy=true;const generation=v55Generation,account=uid;const current=()=>generation===v55Generation&&account===uid&&v55Timer;try{ensure();const local=v55Local(),remote=await v55Remote();if(!current())return;if(!remote)throw Error('Cloud snapshot disappeared. Sync paused.');const localChanged=v55Fingerprint(local.raw)!==v55Baseline;const remoteChanged=remote.revision!==v55Rev;
 if(localChanged&&remoteChanged)throw Error('Both devices changed. Sync paused to avoid losing edits. Download cloud backup and reconcile manually.');
@@ -2329,7 +2366,7 @@ body.v13-app>#v101fig,body.v13-app>#v103{display:none!important}
  <div class="v13-screen" data-v13screen="collection"><div class="v13-eyebrow">Private archive</div><h1 class="v13-heading">My Collection</h1><p class="v13-muted">Your saved pieces and personal inventory.</p><div class="v13-hero"><div class="v13-muted" id="v13CollectionValueLabel">Collection estimate</div><div class="v13-value" id="v13CatalogTotal">—</div><div class="v13-muted" id="v13CatalogCoverage" aria-live="polite"></div><div class="v13-muted" id="v13EbayCoverage" aria-live="polite"></div></div><div id="v13library" class="v13-host"></div></div>
  <div class="v13-screen" data-v13screen="discover"><div class="v13-eyebrow">Explore</div><h1 class="v13-heading">Discover collectibles</h1><p class="v13-muted">Search figures, LEGO, cards and comics inside THE VAULT.</p><button class="v13-primary" id="v13search">⌕ Find & add collectibles</button><button class="v13-quiet" id="v13manualadd" type="button" style="width:100%;margin:0 0 12px">＋ Add manually</button><div class="v13-card"><h3>Find photos, names, and editions</h3><p class="v13-muted">Search across available catalogs in one place. Results show product names and photos where the source provides them.</p><div id="v13catalognotice">Catalog matches fill in available photos and listed prices.</div></div></div>
  <div class="v13-screen" data-v13screen="wishlist"><div class="v13-eyebrow">Future treasures</div><h1 class="v13-heading">Wishlist</h1><div class="v13-card"><h3>Collect what you love</h3><p class="v13-muted">Wishlist items are kept with your collection records. Open Collection to browse and filter them.</p><button class="v13-quiet" id="v13wishbrowse">Browse collection</button></div></div>
- <div class="v13-screen" data-v13screen="settings"><div class="v13-eyebrow">Your account</div><h1 class="v13-heading">Settings</h1><div class="v13-card"><h3>Membership</h3><p>Vault Free · $0 · Unlimited collection tracking</p><p>Vault Pro · $19.99 per month · Coming soon</p></div><div class="v13-card"><h3>Private by design</h3><p class="v13-muted">Completed edits save automatically on this device. Cloud Safe Sync is opt-in and requires a signed-in account; it is not an automatic background backup.</p></div><div id="v13settings"><details><summary>Cloud account & backups</summary><div id="v13cloud" class="v13-host"></div><div id="v13backup" class="v13-host"></div></details></div></div>
+ <div class="v13-screen" data-v13screen="settings"><div class="v13-eyebrow">Your account</div><h1 class="v13-heading">Settings</h1><div class="v13-card"><h3>Membership</h3><p>Vault Free · $0 · Unlimited collection tracking</p><p>Vault Pro · $19.99 per month · Coming soon</p></div><div class="v13-card"><h3>Private by design</h3><p class="v13-muted">Completed edits save automatically on this device. When signed in, your collection syncs automatically while the app is open.</p></div><div id="v13settings"><details><summary>Cloud account & backups</summary><div id="v13cloud" class="v13-host"></div><div id="v13backup" class="v13-host"></div></details></div></div>
 </div>
 <nav class="v13-tabbar" id="v13tabbar" aria-label="App navigation"><button class="active" data-v13tab="home"><span>⌂</span>Home</button><button data-v13tab="collection"><span>▦</span>Collection</button><button data-v13tab="discover"><span>⌕</span>Discover</button><button data-v13tab="wishlist"><span>♡</span>Wishlist</button><button data-v13tab="settings"><span>⚙</span>Settings</button></nav>
 <script id="vault13script">
