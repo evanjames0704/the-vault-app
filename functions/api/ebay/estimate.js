@@ -102,7 +102,11 @@ export async function onRequestGet({request,env,waitUntil}) {
     }
     let quote;
     if (env.EBAY_WEBSITE_SOLD_ENABLED === 'true') {
-      quote = estimateRows(await searchPage(query,true),terms,true);
+      try {
+        quote = estimateRows(await searchPage(query,true),terms,true);
+      } catch {
+        // Active listings can still supply an asking-price estimate.
+      }
     }
     if (!quote) quote = estimateRows(await searchPage(query,false),terms,false);
     const result = json({quote:quote ? {...quote, checkedAt:new Date().toISOString()} : null},200,DAY);

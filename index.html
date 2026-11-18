@@ -2322,7 +2322,7 @@ try{const raw=sessionStorage.getItem(KEY),data=raw&&JSON.parse(raw);if(data?.fie
     for (const item of items) {
       const count = Math.max(1,Math.floor(Number(item.quantity)||1));
       pieces += count;
-      const quote = cachedResult(item)?.quote;
+      const quote = cached.get(parameters(item))?.quote;
       const cardMarket=cardPrices.get(cardKey(item))?.amount||0;
       const market=cardMarket || (quote?.basis==='sold' ? quote.amount : positive(item.estimate));
       const asking=quote?.basis==='asking' ? quote.amount : 0;
@@ -2352,7 +2352,7 @@ try{const raw=sessionStorage.getItem(KEY),data=raw&&JSON.parse(raw);if(data?.fie
       const quote = byId.get(row.dataset.ebayPriceFor);
       if (!quote) continue;
       row.textContent = quote?.basis==='category' ? usd.format(quote.amount)+' each · Category estimate' : quote?.basis==='tcg' ? usd.format(quote.amount)+' each · TCGplayer market price' : quote?.basis==='last-tcg' ? usd.format(quote.amount)+' each · Last TCGplayer estimate' : quote?.basis==='saved' ? usd.format(quote.amount)+' each · Saved estimate' : quote?.basis==='retail' ? usd.format(quote.amount)+' each · Listed retail' : quote ? usd.format(quote.amount)+' each · eBay '+(quote.basis==='sold'?'sold estimate':'asking estimate')+
-        ' · '+quote.sampleSize+' comparable listings' : '';
+        ' · '+quote.sampleSize+' comparable listings'+(Number.isFinite(Date.parse(quote.checkedAt))?' · Checked '+new Date(quote.checkedAt).toLocaleDateString():'') : '';
     }
     document.getElementById('v13value').textContent = estimatedPieces ? usd.format(estimateTotal) : '—';
     document.getElementById('v13EstimateCoverage').textContent = pieces
@@ -2387,7 +2387,7 @@ try{const raw=sessionStorage.getItem(KEY),data=raw&&JSON.parse(raw);if(data?.fie
         const {quote} = await response.json();
         const valid = quote && ['sold','asking'].includes(quote.basis) && Number.isFinite(quote.amount) &&
           quote.amount>0 && Number.isInteger(quote.sampleSize) && quote.sampleSize>=2;
-        cached.set(key,{at:Date.now(),quote:valid?quote:null});
+        cached.set(key,{at:Date.now(),quote:valid?quote:(cached.get(key)?.quote||null)});
         await new Promise(resolve=>setTimeout(resolve,1000));
       }
     } catch { pausedUntil=Date.now()+15*60*1000; }
