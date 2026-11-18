@@ -24,12 +24,12 @@ async function playerCards(params) {
   if (next ? !current : name.length<2 || name.length>80 || !SPORTS.has(sport)) {
     return Response.json({error:'Enter a player name and sport.'},{status:400});
   }
-  const options={redirect:'manual',signal:AbortSignal.timeout(8000)};
+  const requestOptions=()=>({redirect:'manual',signal:AbortSignal.timeout(12000)});
   try {
     let response;
     if (!current) {
       response=await fetch(ORIGIN+'/ViewResults.cfm?MODE=ADVANCED',{
-        ...options,method:'POST',body:new URLSearchParams({MODE:'GET',Type:sport,Name:name}),
+        ...requestOptions(),method:'POST',body:new URLSearchParams({MODE:'GET',Type:sport,Name:name}),
       });
       const location=response.headers.get('location');
       if (location) {
@@ -37,7 +37,7 @@ async function playerCards(params) {
         if (!current) throw Error('Unexpected TCDB redirect');
       }
     }
-    if (current) response=await fetch(current,options);
+    if (current) response=await fetch(current,requestOptions());
     if (!response.ok) throw Error('Player checklist unavailable');
     const cards=new Map();
     let card, following=null, title='';

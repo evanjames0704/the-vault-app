@@ -1666,7 +1666,7 @@ async function searchPlayer(name,sport,token) {
   try {
    const params=new URLSearchParams({mode:'player',name,sport});
    if(next)params.set('next',next);
-   const response=await fetch('/api/tcdb/card?'+params,{signal:AbortSignal.timeout(18000)});
+   const response=await fetch('/api/tcdb/card?'+params,{signal:AbortSignal.timeout(27000)});
    if(!response.ok)throw Error();
    const page=await response.json();
    if(token!==seq)return;
