@@ -19,6 +19,9 @@ def parse(html,url,hot_toys=False):
   if key in ("","/"):return
   identifier=re.sub(r"[^a-z0-9]+","-",key.lower()).strip("-")
   franchise="Pokémon" if re.search(r"pok[eé]mon",name,re.I) else "DC" if "dc multiverse" in name.lower() else "Marvel" if "marvel legends" in name.lower() else ""
+  previous=records.get(key,{})
+  if price is None:price=previous.get("retailPrice")
+  sku=sku or previous.get("identifier","")
   if hot_toys:
    model=re.search(r"\b(?:MMS|TMS|DX|CMS|VGM|PPS|SMS|QS|DS|ACS)\d+[A-Z0-9]*\b",name,re.I)
    if model:sku=model[0].upper()
@@ -51,7 +54,7 @@ def parse(html,url,hot_toys=False):
   img=a.find("img") or (card.find("img") if card else None)
   name=a.get_text(" ",strip=True) or a.get("title","") or (img.get("alt","") if img else "")
   if name:
-   price_node=card.select_one(".product-card-price") if card and hot_toys else None
+   price_node=card.select_one(".product-card-price") if card else None
    price_text=price_node.get_text(" ",strip=True) if price_node else ""
    price=float(price_text[1:].replace(",","")) if re.fullmatch(r"\$[\d,]+\.\d{2}",price_text) else None
    add(name,href,(img.get("data-src") or img.get("src") or "") if img else "",price)

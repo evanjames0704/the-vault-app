@@ -52,7 +52,10 @@ def parse(html,url,host,brand):
    image=card.select_one("img[src]")
    line=card.select_one(".card-brand-name")
    series=line.get_text(" ",strip=True) if line else ""
-   items[identifier]={"id":"mcfarlane-"+identifier,"name":name,"category":"Action figures" if re.search(r"\bfigures?\b",name,re.I) else "Collectibles","brand":brand,"franchise":"DC" if urlparse(url).path.startswith("/dc-") else "","series":series,"identifier":identifier,"image":urljoin(url,image["src"]) if image else "","sourceUrl":link,"retailPrice":None,"marketValue":None}
+   price_node=card.select_one("[data-product-price-without-tax], [data-product-price-with-tax]")
+   price_text=price_node.get_text(" ",strip=True) if price_node else ""
+   price=float(price_text[1:].replace(",","")) if re.fullmatch(r"\$[\d,]+\.\d{2}",price_text) else None
+   items[identifier]={"id":"mcfarlane-"+identifier,"name":name,"category":"Action figures" if re.search(r"\bfigures?\b",name,re.I) else "Collectibles","brand":brand,"franchise":"DC" if urlparse(url).path.startswith("/dc-") else "","series":series,"identifier":identifier,"image":urljoin(url,image["src"]) if image else "","sourceUrl":link,"retailPrice":price,"marketValue":None}
  return list(items.values())
 def main():
  p=argparse.ArgumentParser()
