@@ -7,7 +7,7 @@ restriction bypass and no fabricated prices.
 import argparse,json,re
 from pathlib import Path
 from urllib.parse import urljoin
-import requests
+from catalog_pages import listing_pages
 from bs4 import BeautifulSoup
 
 URL="https://www.mephitsu.co.uk/marvel-legends"
@@ -39,11 +39,12 @@ def main():
  p.add_argument("--input",type=Path)
  p.add_argument("--output",type=Path,default=Path("mephitsu-catalog.json"))
  a=p.parse_args()
- if a.input:html=a.input.read_text(encoding="utf-8")
- else:
-  r=requests.get(URL,timeout=25,headers={"User-Agent":"TheVaultCatalogImporter/1.0"})
-  r.raise_for_status();html=r.text
- items=extract(html)
+ pages=[(a.input.read_text(encoding="utf-8"), URL)] if a.input else listing_pages(URL)
+ indexed={}
+ for html, _ in pages:
+  for item in extract(html):
+   indexed[item["id"]]=item
+ items=list(indexed.values())
  if not items:raise SystemExit("Mephitsu table not available in returned HTML; provide authorized export")
  a.output.parent.mkdir(parents=True,exist_ok=True)
  a.output.write_text(json.dumps({"schema":"vault-mephitsu-v1","count":len(items),"items":items},ensure_ascii=False),encoding="utf-8")

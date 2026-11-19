@@ -5,6 +5,14 @@ on:
     paths:
       - 'index.html'
       - 'tools/**'
+      - 'functions/**'
+      - '.github/workflows/import-catalogs.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'tools/**'
+      - 'functions/**'
       - '.github/workflows/import-catalogs.yml'
   workflow_dispatch:
     inputs:
@@ -18,6 +26,7 @@ on:
           - sideshow
           - marvel-legends
           - bbts
+          - hot-toys
           - hasbro
           - mcfarlane
           - mephitsu
@@ -49,9 +58,16 @@ jobs:
           mkdir -p output
           case "$SOURCE" in
             all)
-              python tools/import_funko.py --url 'https://funko.com/all-funko-products/' --output output/funko-catalog.json
-              python tools/import_marvel_legends.py --url 'https://legendsverse.com/checklist/marvel-legends/figures?view=table' --output output/marvel-legends.json || echo 'Marvel Legends unavailable; no bypass attempted'
+              python tools/import_funko.py --url 'https://funko.com/all-funko-products/' --output output/funko-catalog.json || echo 'Funko import incomplete'
+              python tools/import_marvel_legends.py --url 'https://legendsverse.com/checklist/marvel-legends/figures' --output output/marvel-legends.json || echo 'Marvel Legends unavailable; no bypass attempted'
               python tools/import_sideshow.py --pages "$PAGES" --output output/sideshow-catalog.json || echo 'Sideshow unavailable; no bypass attempted'
+              python tools/import_big_toes.py --output output/big-toes-catalog.json || echo 'Big Toes catalog unavailable'
+              for store in replay toyco galactic toydojo emerald; do
+                (python tools/import_big_toes.py --store "$store" --output "output/$store-catalog.json" || echo "$store catalog unavailable") &
+              done
+              wait
+              python tools/import_cardcollector2.py --output output/cardcollector2-catalog.json || echo 'CardCollector2 catalog unavailable'
+              python tools/import_bbts.py --hot-toys --output output/hot-toys-catalog.json || echo 'Hot Toys catalog unavailable'
               python tools/import_bbts.py --output output/bbts-catalog.json || echo 'BBTS unavailable; no bypass attempted'
               python tools/import_manufacturer.py --source hasbro --output output/hasbro-catalog.json || echo 'Hasbro unavailable; no bypass attempted'
               python tools/import_manufacturer.py --source mcfarlane --output output/mcfarlane-catalog.json || echo 'McFarlane unavailable; no bypass attempted'
@@ -62,7 +78,8 @@ jobs:
             sideshow)
               if ! [[ "$PAGES" =~ ^[0-9]+$ ]] || (( PAGES < 1 || PAGES > 25 )); then echo 'Invalid pages'; exit 1; fi
               python tools/import_sideshow.py --pages "$PAGES" --output output/sideshow-catalog.json ;;
-            marvel-legends) python tools/import_marvel_legends.py --url 'https://legendsverse.com/checklist/marvel-legends/figures?view=table' --output output/marvel-legends.json ;;
+            marvel-legends) python tools/import_marvel_legends.py --url 'https://legendsverse.com/checklist/marvel-legends/figures' --output output/marvel-legends.json ;;
+            hot-toys) python tools/import_bbts.py --hot-toys --output output/hot-toys-catalog.json ;;
             bbts) python tools/import_bbts.py --output output/bbts-catalog.json ;;
             hasbro) python tools/import_manufacturer.py --source hasbro --output output/hasbro-catalog.json ;;
             mcfarlane) python tools/import_manufacturer.py --source mcfarlane --output output/mcfarlane-catalog.json ;;
@@ -92,18 +109,27 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p website
-          cp index.html website/
+          cp index.html _headers pricecharting-base-set-snapshot.json website/
+          node tools/build_pages_worker.mjs website
+          node --input-type=module --check < website/_worker.js
           for file in manifest.webmanifest sw.js icon.svg marvel-legends.json sideshow-catalog.json funko-catalog.json bbts-catalog.json hasbro-catalog.json mcfarlane-catalog.json mephitsu-catalog.json pokemon-catalog.json; do
             if [ -f "$file" ]; then cp "$file" website/; fi
           done
           cp output/*.json website/
+          python tools/build_retail_price_index.py website
+          funko_source=https://raw.githubusercontent.com/kennymkchan/funko-pop-data/80313348ceb0ed410d75639585b977dc593fc534
+          curl --fail --silent --show-error --location "$funko_source/funko_pop.json" -o website/historical-funko.json
+          curl --fail --silent --show-error --location "$funko_source/LICENSE" -o website/historical-funko-license.txt
           python tools/mirror_catalog_images.py --root website --max-images 1500
           python - <<'PY'
           import json
           from pathlib import Path
           root=Path('website')
-          names={'funko':'funko-catalog.json','marvel-legends':'marvel-legends.json','sideshow':'sideshow-catalog.json','bbts':'bbts-catalog.json','hasbro':'hasbro-catalog.json','mcfarlane':'mcfarlane-catalog.json','mephitsu':'mephitsu-catalog.json','pokemon':'pokemon-catalog.json'}
-          status={}
+          names={'emerald':'emerald-catalog.json','replay':'replay-catalog.json','toyco':'toyco-catalog.json','galactic':'galactic-catalog.json','toydojo':'toydojo-catalog.json','big-toes':'big-toes-catalog.json','funko':'funko-catalog.json','marvel-legends':'marvel-legends.json','sideshow':'sideshow-catalog.json','bbts':'bbts-catalog.json','hot-toys':'hot-toys-catalog.json','cardcollector2':'cardcollector2-catalog.json','hasbro':'hasbro-catalog.json','mcfarlane':'mcfarlane-catalog.json','mephitsu':'mephitsu-catalog.json','pokemon':'pokemon-catalog.json'}
+          status={
+              'lego': {'available': True, 'count': len(json.loads((root/'lego-catalog.json').read_text()))},
+              'historical-funko': {'available': True, 'count': len(json.loads((root/'historical-funko.json').read_text()))},
+          }
           for name,filename in names.items():
             if (root/filename).exists():
               data=json.loads((root/filename).read_text())
@@ -126,13 +152,11 @@ jobs:
           from pathlib import Path
           import json
           root=Path("website")
-          required=["index.html","manifest.webmanifest","sw.js","icon.svg","icon-192.png","icon-512.png","apple-touch-icon.png","lego-catalog.json"]
+          required=["index.html","manifest.webmanifest","sw.js","icon.svg","icon-192.png","icon-512.png","apple-touch-icon.png","lego-catalog.json","_worker.js","_routes.json"]
           missing=[x for x in required if not (root/x).is_file()]
           assert not missing, f"Incomplete website bundle; missing {missing}"
           assert len(json.loads((root/"lego-catalog.json").read_text()))>=10000
           imported=list(root.glob("*-catalog.json"))
-          if "${{ inputs.source || 'all' }}" == "all":
-            assert (root/"funko-catalog.json").is_file(), "Funko catalog missing"
           print("Package files:", [p.name for p in root.iterdir()])
           print("Bundled LEGO records:",len(json.loads((root/"lego-catalog.json").read_text())))
           PY
@@ -145,6 +169,6 @@ jobs:
           retention-days: 7
       - uses: actions/upload-artifact@v4
         with:
-          name: ${{ inputs.source }}-catalog-preview
+          name: ${{ inputs.source || 'all' }}-catalog-preview
           path: output/*.json
           retention-days: 7

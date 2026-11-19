@@ -5,12 +5,13 @@ Uses structured Product JSON-LD only. Does not bypass restricted access.
 """
 import argparse,json,re
 from pathlib import Path
+from catalog_pages import listing_pages
 from urllib.parse import urljoin,urlparse
 import requests
 from bs4 import BeautifulSoup
 SOURCES={
- "hasbro":("https://www.hasbropulse.com/collections/marvel-legends","hasbropulse.com","Hasbro"),
- "mcfarlane":("https://mcfarlanetoysstore.com/collections/all","mcfarlanetoysstore.com","McFarlane Toys"),
+ "hasbro":("https://www.hasbropulse.com/collections/marvel-legends-series","hasbropulse.com","Hasbro"),
+ "mcfarlane":("https://mcfarlanetoysstore.com/dc-multiverse/","mcfarlanetoysstore.com","McFarlane Toys"),
 }
 def parse(html,url,host,brand):
  soup=BeautifulSoup(html,"html.parser");items={}
@@ -28,7 +29,7 @@ def parse(html,url,host,brand):
    if "Product" not in kinds:continue
    name=str(node.get("name") or "").strip()
    link=urljoin(url,str(node.get("url") or ""))
-   if not name or not urlparse(link).hostname or not urlparse(link).hostname.endswith(host):continue
+   if not name or not urlparse(link).hostname or urlparse(link).hostname not in (host, "www."+host):continue
    img=node.get("image") or ""
    if isinstance(img,list):img=img[0] if img else ""
    if isinstance(img,dict):img=img.get("url","")
@@ -39,6 +40,22 @@ def parse(html,url,host,brand):
    except (ValueError,TypeError,KeyError):price=None
    key=re.sub(r"[^a-z0-9]+","-",urlparse(link).path.lower()).strip("-")
    items[key]={"id":brand.lower().replace(" ","-")+"-"+key,"name":name,"category":"Action figures","brand":brand,"identifier":str(node.get("sku") or ""),"image":urljoin(url,str(img)) if img else "","sourceUrl":link,"retailPrice":price,"currency":"USD","priceType":"listed_retail","marketValue":None}
+ if host=="mcfarlanetoysstore.com":
+  for card in soup.select("article.card a.card-product-link[href]"):
+   title=card.select_one(".card-title")
+   body=card.select_one("[data-product-id]")
+   if not title or not body:continue
+   link=urljoin(url,card["href"])
+   if urlparse(link).hostname != host:continue
+   identifier=body["data-product-id"]
+   name=title.get_text(" ",strip=True)
+   image=card.select_one("img[src]")
+   line=card.select_one(".card-brand-name")
+   series=line.get_text(" ",strip=True) if line else ""
+   price_node=card.select_one("[data-product-price-without-tax], [data-product-price-with-tax]")
+   price_text=price_node.get_text(" ",strip=True) if price_node else ""
+   price=float(price_text[1:].replace(",","")) if re.fullmatch(r"\$[\d,]+\.\d{2}",price_text) else None
+   items[identifier]={"id":"mcfarlane-"+identifier,"name":name,"category":"Action figures" if re.search(r"\bfigures?\b",name,re.I) else "Collectibles","brand":brand,"franchise":"DC" if urlparse(url).path.startswith("/dc-") else "","series":series,"identifier":identifier,"image":urljoin(url,image["src"]) if image else "","sourceUrl":link,"retailPrice":price,"marketValue":None}
  return list(items.values())
 def main():
  p=argparse.ArgumentParser()
@@ -47,13 +64,18 @@ def main():
  p.add_argument("--input",nargs="*",type=Path)
  p.add_argument("--output",required=True,type=Path)
  a=p.parse_args();default,host,brand=SOURCES[a.source];url=a.url or default
- if a.input:pages=[x.read_text(encoding="utf-8") for x in a.input]
+ if a.input:
+  pages=((x.read_text(encoding="utf-8"),url) for x in a.input)
+ elif a.source=="mcfarlane":
+  sections=[url] if a.url else [urljoin(url,path) for path in ("/dc-multiverse/","/dc-movies/","/dc-gaming/","/dc-retro/","/movies/","/comics/","/gaming/","/sports/","/music/","/television/","/digital-available/","/exclusives/")]
+  pages=(page for section in sections for page in listing_pages(section))
  else:
   r=requests.get(url,timeout=25,headers={"User-Agent":"TheVaultCatalogImporter/1.0"})
-  r.raise_for_status();pages=[r.text]
+  r.raise_for_status()
+  pages=[(r.text,r.url)]
  items={}
- for html in pages:
-  for item in parse(html,url,host,brand):items[item["id"]]=item
+ for html,page_url in pages:
+  for item in parse(html,page_url,host,brand):items[item["id"]]=item
  if not items:raise SystemExit("No accessible structured product records found for "+brand)
  a.output.parent.mkdir(parents=True,exist_ok=True)
  a.output.write_text(json.dumps({"schema":"vault-"+a.source+"-v1","count":len(items),"items":list(items.values())},ensure_ascii=False),encoding="utf-8")

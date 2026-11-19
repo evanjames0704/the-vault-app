@@ -1,0 +1,25 @@
+name: Import Neon Ichiban catalog
+on:
+  push:
+    branches: [commercial-launch-foundation]
+    paths:
+      - '.github/workflows/import-neon-ichiban.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: neon-ichiban-catalog
+  cancel-in-progress: false
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    steps:
+      - uses: actions/checkout@v4
+      - name: Import digital editions
+        run: python3 -u tools/import_neon_ichiban.py --output neon-ichiban-catalog.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: neon-ichiban-catalog
+          path: neon-ichiban-catalog.json
+          if-no-files-found: error
