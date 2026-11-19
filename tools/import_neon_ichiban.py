@@ -8,7 +8,7 @@ from html.parser import HTMLParser
 from pathlib import Path
 import re
 import time
-from urllib.parse import urljoin, urlsplit
+from urllib.parse import quote, urljoin, urlsplit
 from urllib.request import Request, urlopen
 import xml.etree.ElementTree as ET
 
@@ -98,6 +98,9 @@ def parse_item(item_id, url, payload):
                     if 'Product' in x.get('@type', [])), {})
     title = (label(product.get('name')) or page.meta.get('og:title', '')).strip()
     title = title.removesuffix(' | Neon Ichiban')
+    heading = page.meta.get('og:title', '').removesuffix(' | Neon Ichiban')
+    if heading and heading.startswith(title) and len(heading)>len(title):
+        title = heading
     if not title or title.casefold() in {'neon ichiban', 'page not found'}:
         raise ValueError('No edition title')
     cover = product.get('image') or page.meta.get('og:image') or ''
@@ -119,6 +122,8 @@ def parse_item(item_id, url, payload):
         price = None
     if price is not None and not 0 <= price < 100000:
         price = None
+    if image:
+        image = quote(image, safe="/:?&=%#-._~!$'()*+,;@[]")
     issue = re.search(r'#\s*(-?\d+[a-z]?)\b', title, re.I)
     return {
         'name': title, 'identifier': f'Neon Ichiban {item_id}',
