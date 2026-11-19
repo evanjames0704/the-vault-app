@@ -2272,6 +2272,7 @@ async function search(){
  for(const [file,source,schema] of [
   ['big-toes','Big Toes Collectibles','vault-bigtoes-v1'],
   ['emerald','Emerald City Comics','vault-storefront-catalog-v1'],
+  ['neon-ichiban','Neon Ichiban','vault-neon-ichiban-v1'],
   ['replay','Replay Toys','vault-storefront-catalog-v1'],
   ['toyco','Toyco','vault-storefront-catalog-v1'],
   ['galactic','Galactic Toys','vault-storefront-catalog-v1'],
@@ -2525,6 +2526,9 @@ async function search(){
   const desc=document.createElement('div');desc.className='v11sub';desc.textContent=[x.category,x.brand,x.series,x.number?'#'+x.number:'',x.variant,x.source,x.alsoFrom?.length?'Also at '+x.alsoFrom.join(', '):'',x.available===false?'Sold out':''].filter(Boolean).join(' · ');card.appendChild(desc);
   if(x.sourceUrl&&x.source.startsWith('Grand Comics Database')){
    const source=document.createElement('a');source.href=x.sourceUrl;source.target='_blank';source.rel='noopener';source.textContent='Series source';source.className='v11sub';card.appendChild(source);
+  }
+  if(x.source==='Neon Ichiban'){
+   const listing=document.createElement('a');listing.href=x.sourceUrl;listing.target='_blank';listing.rel='noopener';listing.className='v11sub';listing.textContent='View digital edition';card.appendChild(listing);
   }
   const catalogQuote=window.vaultMarvelLegendsQuote(x);
   const price=document.createElement('div');price.className='v11sub';price.textContent=catalogQuote?(catalogQuote.basis==='community'?'Community estimate: ':'Listed retail · '+catalogQuote.source+': ')+usdPrice(catalogQuote.amount):Number.isFinite(x.retailPrice)&&x.retailPrice>0?'Listed retail: $'+x.retailPrice.toFixed(2)+(x.priceSource?' · '+x.priceSource:''):x.source==='TCDB'&&Number.isFinite(x.marketPrice)&&x.marketPrice>0?'TCDB reported median: $'+x.marketPrice.toFixed(2):Number.isFinite(x.askingPrice)&&x.askingPrice>0?'Mercari asking price: $'+x.askingPrice.toFixed(2):x.storefront?'Checks full retail price when selected':'No item-specific price';card.appendChild(price);
