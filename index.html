@@ -2198,7 +2198,7 @@ function deduplicateCatalogResults(results){
     category==='Hot Toys'&&/^(?:mms|tms|dx|vpm)\d+[a-z0-9-]*$/i.test(identifier);
   const condition=normalize(name+' '+(variant||'')).match(/\b(?:damaged|loose|used|opened|unboxed|preowned|pre-owned|signed|autographed|graded|cgc|cbcs|facsimile|reprint|box only|chase|prototype|exclusive|reissue|repaint|glow)\b/g)||[];
   const brandedRetail=row.catalogVariant&&normalize(brand)&&normalize(name).split(' ').length>=4;
-  const keyParts=gtin?[category,'gtin',String(gtin).padStart(14,'0'),variant,...(category==='Comic books'?[name]:[]),...new Set(condition.sort())]:
+  const keyParts=source==='Neon Ichiban'?[category,source,identifier]:gtin?[category,'gtin',String(gtin).padStart(14,'0'),variant,...(category==='Comic books'?[name]:[]),...new Set(condition.sort())]:
     sharedId?[category,identifier,variant]:
     brandedRetail?[category,'retail-edition',brand,name,variant]:
     [category,name,identifier,variant,identifier?source:''];
